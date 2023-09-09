@@ -45,19 +45,28 @@ const uint g_RelaysCount = 5;
 
 ClsRelays g_Relays;
 //------ HADWARE PINS USED
-const int8_t g_pinReset = -1;
-const uint8_t g_pinIntLedBlue = 2;
-const uint8_t g_pingSensorLed = 23;
-/*
-12    RELAY 1    IRRIGATION
-04    RELAY 2    IRRIGATION
-27    RELAY 3    
-26    RELAY 4
-25    RELAY 5
+const int8_t g_pinReset = 17;
+const uint8_t g_pinIntLedBlue = 13;
+const uint8_t g_pinIntLedRed = 14;
 
-*/
-const uint8_t g_pinRelays[g_RelaysCount] = {23, 19, 4, 13,13}; //  for testing with testing board with only four relays
-//const uint8_t g_pinRelays[g_RelaysCount] = {12, 04, 27, 26,26}; // por use with explotation board
+const uint8_t g_pingSensorLed = 23;
+
+//const uint8_t g_pinRelays[g_RelaysCount] = {23, 19, 4, 13, 13}; //  for testing with testing board with only four relays
+const uint8_t g_pinRelays[g_RelaysCount] = {12, 04, 27, 26, 25}; // for use with explotation board
+
+
+const uint8_t g_pinI2C_SDA = 21;
+const uint8_t g_pinI2C_SCL = 22;
+
+const uint8_t g_pinSPI_CS   = 5;
+const uint8_t g_pinSPI_MOSI = 23;
+const uint8_t g_pinSPI_MISO = 19;
+const uint8_t g_pinSPI_SCK  = 18;
+
+const uint8_t g_pinSensor1 = 32;
+const uint8_t g_pinSensor2 = 33;
+
+const uint8_t g_pinVinSensor = 36;
 
 // const uint g_pinRelays[g_RelaysCount] = {26, 25, 33, 32};
 // int g_pinRelays[8] = {23, 21, 19, 4, 25, 16, 13, 26};

@@ -128,12 +128,14 @@ bool ClsNetworkConfig::connectAP()
     // bool softAPConfig(IPAddress local_ip, IPAddress gateway, IPAddress subnet);
     if (!WiFi.softAPConfig(m_WiFI_AP_IP, m_WiFI_AP_Gateway, m_WiFI_AP_Mask))
     {
-        Serial.println("STA Failed to configure");
+        Serial.println("AP Failed to configure");
     }
     WiFi.softAP(m_WiFI_AP_Ssid.c_str(), m_WiFI_AP_Pwd.c_str());
     Serial.println("Wifi connected as ");
-    Serial.printf("[WIFI] Acces Point Mode, SSID: %s, IP address: %s\n", m_WiFI_AP_Ssid.c_str(), WiFi.softAPIP().toString().c_str());
+    Serial.printf("[WIFI] Access Point Mode, SSID: %s, IP address: %s\n", m_WiFI_AP_Ssid.c_str(), WiFi.softAPIP().toString().c_str());
     m_WiFi_ConnectedModeLast = 'a';
+    m_intervaPrevious = millis();
+    Serial.printf("connectAP():: m_intervaPrevious: %ld %p\n", m_intervaPrevious, &m_intervaPrevious);
     return true;
 }
 
@@ -141,6 +143,11 @@ bool ClsNetworkConfig::connectAP()
 bool ClsNetworkConfig::connectWS()
 {
     Serial.println("ClsNetworkConfig::connectWS()");
+    if (m_WiFI_WS_Ssid == "") {
+        Serial.println("no SSID configured, skipping workstation connect");
+        return false;
+    }
+
     WiFi.disconnect();
     WiFi.mode(WIFI_STA);
     // WiFi.mode(WIFI_AP);
@@ -163,6 +170,7 @@ bool ClsNetworkConfig::connectWS()
         if (m_intervalCurrent - m_intervaPrevious >= m_interval)
         {
             // Serial.println("Failed to connect.");
+            m_intervaPrevious = millis();
             m_WiFi_ConnectedModeLast = 'f';
             return false;
         }
@@ -174,6 +182,7 @@ bool ClsNetworkConfig::connectWS()
     Serial.println("");
     m_WiFi_ConnectedModeLast = 'w';
     IsInternetAvailableTest();
+    m_intervaPrevious = millis();
     return true;
     ;
 }
@@ -181,18 +190,19 @@ bool ClsNetworkConfig::setup(int8_t pinReset, bool bForceReset)
 {
     m_pinReset = pinReset;
     // if is set pin reset read
-    if (m_pinReset > 0 && digitalRead(m_pinReset) == HIGH)
+    if (m_pinReset > 0 && digitalRead(m_pinReset) == LOW)
     {
         bForceReset = true;
     }
     // reset factory
     if (bForceReset)
     {
+        Serial.println("Reset factory");
         set_config_default();
-        set_config_AP(m_WiFI_AP_Ssid, m_WiFI_AP_Pwd);
+        set_config_AP(m_WiFI_AP_Ssid, m_WiFI_AP_Pwd_default);
 
-        set_config_WS(m_WiFI_WS_Ssid, m_WiFI_WS_Pwd, m_WiFI_WS_IP, m_WiFI_WS_Mask, m_WiFI_WS_Gateway_default);
-        set_config_TimeRtcNtp(m_NtpTimeZone, m_NtpTimeZoneDayLight, m_GpsLatitude, m_GpsLongitude);
+        set_config_WS(m_WiFI_WS_Ssid_default, m_WiFI_WS_Pwd_default, m_WiFI_WS_IP_default, m_WiFI_WS_Mask_default, m_WiFI_WS_Gateway_default);
+        set_config_TimeRtcNtp(m_NtpTimeZone_default, m_NtpTimeZoneDayLight_default, m_GpsLatitude_default, m_GpsLongitude_default);
     }
 
     Serial.println("-------------------------------------ClsNetworkConfig::setup()");
@@ -266,18 +276,22 @@ void ClsNetworkConfig::loop()
     }
 
     m_intervalCurrent = millis();
-    if (m_intervaPrevious < m_intervalCurrent)
+
+   // check for overflow in the counters
+    if (m_intervaPrevious > m_intervalCurrent)
     {
+        Serial.println("ClsNetworkConfig::loop() Interval roll-over");
         m_intervaPrevious = 0;
     }
+
+    // if in AP mode try to reconnect to wifi if interval is reached
     if (m_intervalCurrent - m_intervaPrevious >= m_interval)
     {
-        Serial.println("WARNING! traying to reconnect to wifi " + m_WiFI_WS_Ssid);
-        if (m_WiFi_ConnectedModeLast == 'a')
+       if (m_WiFi_ConnectedModeLast == 'a' && WiFi.softAPgetStationNum() == 0)
         {
+            Serial.println("WARNING! trying to reconnect to wifi " + m_WiFI_WS_Ssid);
             WiFi.disconnect();
             connect_WS_Or_AP();
-            m_intervaPrevious = m_intervalCurrent;
         }
     }
 }

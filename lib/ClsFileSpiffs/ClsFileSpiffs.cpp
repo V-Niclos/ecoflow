@@ -1,11 +1,11 @@
 #include "ClsFileSpiffs.h"
 ClsFileSpiffs::ClsFileSpiffs(/* args */)
 {
+    fncSpiffsInit();
 }
 
 ClsFileSpiffs::~ClsFileSpiffs()
 {
-    fncSpiffsInit();
 }
 
 String ClsFileSpiffs::fileRead(String path)

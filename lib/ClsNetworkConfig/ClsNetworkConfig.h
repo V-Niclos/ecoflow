@@ -80,7 +80,7 @@ private:
 
     int8_t m_pinReset = -1;              // -1= not establised, not in use
     char m_WiFi_ConnectedModeLast = 'f'; // f=false, not connected, w=workstation, a=access  point
-    long m_interval = 5000;
+    long m_interval = 30000; // 1/2 minute
     long m_intervaPrevious = 0;
     long m_intervalCurrent = 0;
 

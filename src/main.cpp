@@ -2,6 +2,9 @@
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
+#include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -34,4 +37,5 @@ void loop()
   // ----------   -------------------------------------   --------------------------
   // Core 1    -> g_TaskCore_1_Loop( void * pvParameters )   -> g_WebServer.handleClient()
   // core 0    -> g_TaskCore_0_Loop ( void * pvParameters )  -> call fncloopServosWithButtons
+  ArduinoOTA.handle();
 }

@@ -6,6 +6,7 @@
 #include "ClsNetworkConfig.h"
 #include "mainSetupWebSrv.h"
 #include "mainSetupWifi.h"
+#include "mainSetupOTA.h"
 #include "mainSetupTimeSun.h"
 #include "mainSetupTasks.h"
 #include "web_html_root.h"
@@ -29,5 +30,6 @@ void fncMainSetup()
   fncMainSetupTimeSun();
   fncMainSetupRelays();
   fncMainSetupWebSrv();
+  fncMainSetupOTA();
 }
 #endif

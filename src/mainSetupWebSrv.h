@@ -257,14 +257,14 @@ int paramsNr = request->params();
       Serial.println(iOnOff);
       if (iOnOff == 0)
       {
-        //g_Relays.m_RelaysOnOff[iIdRelay].setClose();
+        g_Relays.m_RelaysOnOff[iIdRelay].setClose();
       }
       if (iOnOff == 1)
       {
-        //g_Relays.m_RelaysOnOff[iIdRelay].setOpen();
+        g_Relays.m_RelaysOnOff[iIdRelay].setOpen();
       }
-
-         request->send(200, "text/plain", "message received");
+     
+         request->send(200, "text/plain", "message receive "+  request->url() +" pin="+String(g_Relays.m_RelaysOnOff[iIdRelay].getPin()));
       digitalWrite(g_pinIntLedBlue, LOW); });
 
   //------------------------------------------------------------------------

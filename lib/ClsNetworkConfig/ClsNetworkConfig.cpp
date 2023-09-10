@@ -12,9 +12,10 @@ void ClsNetworkConfig::set_config_default()
     uint64_t chipid = ESP.getEfuseMac(); // The chip ID is essentially its MAC address(length: 6 bytes).
     uint16_t chip = (uint16_t)(chipid >> 32);
     snprintf(ssid, 16, "Irrigation-%04X", chip);
-
+    m_WiFI_HostName = m_WiFI_HostName_default;
     // default values for access point mode
     m_WiFI_AP_Ssid = String(ssid);
+
     m_WiFI_AP_Pwd = m_WiFI_AP_Pwd_default; //=null
     m_WiFI_AP_IP = m_WiFI_AP_IP_default;
     m_WiFI_AP_Mask = m_WiFI_AP_Mask_default;
@@ -35,7 +36,7 @@ void ClsNetworkConfig::set_config_default()
     m_NtpTimeZoneDayLight = m_NtpTimeZoneDayLight_default;
     m_GpsLatitude = m_GpsLatitude_default;
     m_GpsLongitude = m_GpsLongitude_default;
-    m_pinReset = -1;
+
     //  debug("set_config_default()");
 }
 
@@ -55,9 +56,8 @@ bool ClsNetworkConfig::set_config_WS(String wifi_WS_Ssid, String wifi_WS_Pwd)
 {
     m_WiFI_WS_Ssid = wifi_WS_Ssid;
     m_WiFI_WS_Pwd = wifi_WS_Pwd;
-    fncFileWriteValue(SPIFFS, m_pathSsid, m_WiFI_WS_Ssid.c_str());
-    fncFileWriteValue(SPIFFS, m_pathPass, m_WiFI_WS_Pwd.c_str());
-
+    ClsFileSpiffs::fileWrite(m_pathWsSsid, m_WiFI_WS_Ssid);
+    ClsFileSpiffs::fileWrite(m_pathWsPass, m_WiFI_WS_Pwd);
     return true;
 }
 /// @brief  Confituration for connect to your Wifi access point, with fixed IP, Maskc  and Gateway
@@ -78,12 +78,12 @@ bool ClsNetworkConfig::set_config_WS(String wifi_WS_Ssid, String wifi_WS_Pwd, IP
     m_WiFI_WS_IP = wifi_WS_IP;
     m_WiFI_WS_Mask = Wifi_WS_Mask;
     m_WiFI_WS_Gateway = wifi_WS_Gateway;
-    // Save config
-    fncFileWriteValue(SPIFFS, m_pathSsid, m_WiFI_WS_Ssid.c_str());
-    fncFileWriteValue(SPIFFS, m_pathPass, m_WiFI_WS_Pwd.c_str());
-    fncFileWriteValue(SPIFFS, m_pathIP, m_WiFI_WS_IP.toString().c_str());
-    fncFileWriteValue(SPIFFS, m_pathMask, m_WiFI_WS_Mask.toString().c_str());
-    fncFileWriteValue(SPIFFS, m_pathGateway, m_WiFI_WS_Gateway.toString().c_str());
+    ClsFileSpiffs::fileWrite(m_pathWsSsid, m_WiFI_WS_Ssid);
+    ClsFileSpiffs::fileWrite(m_pathWsPass, m_WiFI_WS_Pwd);
+    ClsFileSpiffs::fileWrite(m_pathWsIP, m_WiFI_WS_IP.toString());
+    ClsFileSpiffs::fileWrite(m_pathWsMask, m_WiFI_WS_Mask.toString());
+    ClsFileSpiffs::fileWrite(m_pathWsGateway, m_WiFI_WS_Gateway.toString());
+
     Serial.println("web post recived 1b ");
     Serial.println(m_WiFI_WS_Ssid);
     Serial.println(m_WiFI_WS_Pwd);
@@ -105,18 +105,15 @@ bool ClsNetworkConfig::set_config_TimeRtcNtp(int ntpTimeZone, int ntpTimeZoneDay
     m_NtpTimeZoneDayLight = ntpTimeZoneDayLight;
     m_GpsLatitude = gpsLatitude;
     m_GpsLongitude = gpsLongitude;
-
-    fncFileWriteValue(SPIFFS, m_pathTimeZone, String(m_NtpTimeZone).c_str());
-    fncFileWriteValue(SPIFFS, m_pathTimeDayLight, String(m_NtpTimeZoneDayLight).c_str());
-    // fncFileWriteValue(SPIFFS, m_pathLatitude,  std::to_string(m_GpsLatitude));
+    ClsFileSpiffs::fileWrite(m_pathTimeZone, String(m_NtpTimeZone));
+    ClsFileSpiffs::fileWrite(m_pathTimeDayLight, String(m_NtpTimeZoneDayLight));
 
     char cLatitude[14];
     char cLongitude[14];
     dtostrf(m_GpsLatitude, 12, 7, cLatitude);
     dtostrf(m_GpsLongitude, 12, 7, cLongitude);
-    fncFileWriteValue(SPIFFS, m_pathLatitude, cLatitude);
-    fncFileWriteValue(SPIFFS, m_pathLongitude, cLongitude);
-
+    ClsFileSpiffs::fileWrite(m_pathLatitude, String(cLatitude));
+    ClsFileSpiffs::fileWrite(m_pathLongitude, String(cLongitude));
     return true;
 }
 //-----------------------------------------------------------------------
@@ -143,7 +140,8 @@ bool ClsNetworkConfig::connectAP()
 bool ClsNetworkConfig::connectWS()
 {
     Serial.println("ClsNetworkConfig::connectWS()");
-    if (m_WiFI_WS_Ssid == "") {
+    if (m_WiFI_WS_Ssid == "")
+    {
         Serial.println("no SSID configured, skipping workstation connect");
         return false;
     }
@@ -190,19 +188,32 @@ bool ClsNetworkConfig::setup(int8_t pinReset, bool bForceReset)
 {
     m_pinReset = pinReset;
     // if is set pin reset read
-    if (m_pinReset > 0 && digitalRead(m_pinReset) == LOW)
+    if (digitalRead(m_pinReset) == LOW)
     {
         bForceReset = true;
     }
     // reset factory
     if (bForceReset)
     {
+        ClsFileSpiffs::fileDelete(m_pathHostName);
+        ClsFileSpiffs::fileDelete(m_pathLatitude);
+        ClsFileSpiffs::fileDelete(m_pathLongitude);
+        ClsFileSpiffs::fileDelete(m_pathRelaysJson);
+        ClsFileSpiffs::fileDelete(m_pathTimeDayLight);
+        ClsFileSpiffs::fileDelete(m_pathTimeZone);
+        ClsFileSpiffs::fileDelete(m_pathWsDns1);
+        ClsFileSpiffs::fileDelete(m_pathWsDns2);
+        ClsFileSpiffs::fileDelete(m_pathWsGateway);
+        ClsFileSpiffs::fileDelete(m_pathWsIP);
+        ClsFileSpiffs::fileDelete(m_pathWsMask);
+        ClsFileSpiffs::fileDelete(m_pathWsSsid);
+        ClsFileSpiffs::fileDelete(m_pathWsPass);
         Serial.println("Reset factory");
         set_config_default();
         set_config_AP(m_WiFI_AP_Ssid, m_WiFI_AP_Pwd_default);
 
-        set_config_WS(m_WiFI_WS_Ssid_default, m_WiFI_WS_Pwd_default, m_WiFI_WS_IP_default, m_WiFI_WS_Mask_default, m_WiFI_WS_Gateway_default);
-        set_config_TimeRtcNtp(m_NtpTimeZone_default, m_NtpTimeZoneDayLight_default, m_GpsLatitude_default, m_GpsLongitude_default);
+        set_config_WS(m_WiFI_WS_Ssid, m_WiFI_WS_Pwd, m_WiFI_WS_IP, m_WiFI_WS_Mask, m_WiFI_WS_Gateway);
+        set_config_TimeRtcNtp(m_NtpTimeZone, m_NtpTimeZoneDayLight, m_GpsLatitude, m_GpsLongitude);
     }
 
     Serial.println("-------------------------------------ClsNetworkConfig::setup()");
@@ -277,7 +288,7 @@ void ClsNetworkConfig::loop()
 
     m_intervalCurrent = millis();
 
-   // check for overflow in the counters
+    // check for overflow in the counters
     if (m_intervaPrevious > m_intervalCurrent)
     {
         Serial.println("ClsNetworkConfig::loop() Interval roll-over");
@@ -287,7 +298,7 @@ void ClsNetworkConfig::loop()
     // if in AP mode try to reconnect to wifi if interval is reached
     if (m_intervalCurrent - m_intervaPrevious >= m_interval)
     {
-       if (m_WiFi_ConnectedModeLast == 'a' && WiFi.softAPgetStationNum() == 0)
+        if (m_WiFi_ConnectedModeLast == 'a' && WiFi.softAPgetStationNum() == 0)
         {
             Serial.println("WARNING! trying to reconnect to wifi " + m_WiFI_WS_Ssid);
             WiFi.disconnect();
@@ -295,217 +306,38 @@ void ClsNetworkConfig::loop()
         }
     }
 }
-bool ClsNetworkConfig::fncFileExist(String filePaht)
-{
-    File file = SPIFFS.open(filePaht, FILE_READ);
-
-    if (!file)
-    {
-        return false;
-    }
-    file.close();
-    return true;
-}
 
 bool ClsNetworkConfig::configRead()
 {
     Serial.print("-------------------------------------ClsNetworkConfig::configRead() start:");
-    fncFileSpiffsInit();
+
     set_config_default();
-    if (fncFileExist(m_pathSsid))
-    {
-        m_WiFI_WS_Ssid = fncFileReadValue(SPIFFS, m_pathSsid);
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathSsid, m_WiFI_WS_Ssid.c_str());
-    }
-    if (fncFileExist(m_pathPass))
-    {
-        m_WiFI_WS_Pwd = fncFileReadValue(SPIFFS, m_pathPass);
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathPass, m_WiFI_WS_Pwd.c_str());
-    }
+    // if not exist file then write with default value
 
-    if (fncFileExist(m_pathIP))
-    {
-        m_WiFI_WS_IP.fromString(fncFileReadValue(SPIFFS, m_pathIP));
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathIP, m_WiFI_WS_IP.toString().c_str());
-    }
-    if (fncFileExist(m_pathMask))
-    {
-        m_WiFI_WS_Mask.fromString(fncFileReadValue(SPIFFS, m_pathMask));
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathMask, m_WiFI_WS_Mask.toString().c_str());
-    }
-    if (fncFileExist(m_pathGateway))
-    {
-        m_WiFI_WS_Gateway.fromString(fncFileReadValue(SPIFFS, m_pathGateway));
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathGateway, m_WiFI_WS_Gateway.toString().c_str());
-    }
-    if (fncFileExist(m_pathDns1))
-    {
-        m_WiFI_WS_DNS1.fromString(fncFileReadValue(SPIFFS, m_pathDns1));
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathDns1, m_WiFI_WS_DNS1_default.toString().c_str());
-    }
-    if (fncFileExist(m_pathDns2))
-    {
-        m_WiFI_WS_DNS2.fromString(fncFileReadValue(SPIFFS, m_pathDns2));
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathDns2, m_WiFI_WS_DNS2_default.toString().c_str());
-    }
-    if (fncFileExist(m_pathTimeZone))
-    {
-        m_NtpTimeZone = fncFileReadValue(SPIFFS, m_pathTimeZone).toInt();
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathTimeZone, String(m_NtpTimeZone).c_str());
-    }
-    if (fncFileExist(m_pathTimeDayLight))
-    {
-        m_NtpTimeZoneDayLight = fncFileReadValue(SPIFFS, m_pathTimeDayLight).toInt();
-    }
-    else
-    {
-        fncFileWriteValue(SPIFFS, m_pathTimeDayLight, String(m_NtpTimeZoneDayLight).c_str());
-    }
+    m_WiFI_WS_Ssid = ClsFileSpiffs::fileReadWithDefault(m_pathHostName, m_WiFI_HostName_default);
+ 
+    m_WiFI_WS_Ssid = ClsFileSpiffs::fileReadWithDefault(m_pathWsSsid, m_WiFI_WS_Ssid_default);
 
-    if (fncFileExist(m_pathLatitude))
-    {
-        m_GpsLatitude = fncFileReadValueDouble(SPIFFS, m_pathLatitude);
-    }
-    else
-    {
-        char cLatitude[14];
-        dtostrf(m_GpsLatitude, 12, 7, cLatitude);
-        fncFileWriteValue(SPIFFS, m_pathLatitude, cLatitude);
-    }
-    if (fncFileExist(m_pathLongitude))
-    {
-        m_GpsLatitude = fncFileReadValueDouble(SPIFFS, m_pathLongitude);
-    }
-    else
-    {
-        char cLongitude[14];
-        dtostrf(m_GpsLongitude, 12, 7, cLongitude);
-        fncFileWriteValue(SPIFFS, m_pathLongitude, cLongitude);
-    }
+    m_WiFI_WS_Pwd = ClsFileSpiffs::fileReadWithDefault(m_pathWsPass, m_WiFI_WS_Pwd_default);
 
-    //====================================================
-    //====================================================
-    //====================================================
+    m_WiFI_WS_IP.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsIP, m_WiFI_WS_IP_default.toString()));
+ 
+    m_WiFI_WS_Mask.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsMask, m_WiFI_WS_Mask_default.toString()));
+
+    m_WiFI_WS_Gateway.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsGateway, m_WiFI_WS_Gateway_default.toString()));
+
+    m_WiFI_WS_DNS1.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsDns1, m_WiFI_WS_DNS1_default.toString()));
+
+    m_WiFI_WS_DNS2.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsDns2, m_WiFI_WS_DNS2_default.toString()));
+
+    m_NtpTimeZone = ClsFileSpiffs::fileReadWithDefault(m_pathTimeZone, String(m_NtpTimeZone_default)).toInt();
+    m_NtpTimeZoneDayLight = ClsFileSpiffs::fileReadWithDefault(m_pathTimeDayLight, String(m_NtpTimeZoneDayLight_default)).toInt();
+  
+    m_GpsLatitude = ClsFileSpiffs::fncFileReadValueDoubleDefault(m_pathLatitude, m_GpsLatitude_default);
+ 
+    m_GpsLongitude = ClsFileSpiffs::fncFileReadValueDoubleDefault(m_pathLongitude, m_GpsLongitude_default);
+    debug("configRead");
     return true;
-}
-//===========================================================
-//===========================================================
-//===========================================================
-bool ClsNetworkConfig::fncFileSpiffsInit()
-{
-    if (!SPIFFS.begin(true))
-    {
-        Serial.println("An error has occurred while mounting SPIFFS");
-        return false;
-    }
-    Serial.println("SPIFFS mounted successfully");
-    return true;
-}
-double ClsNetworkConfig::fncFileReadValueDouble(fs::FS &fs, const char *path)
-{
-    // Serial.println("=================== fncFileReadValueDouble ======================");
-    // Serial.printf("\n\rReading file: %s value: ", path);
-    double dFileContent = 0;
-    String sFileContent = "";
-    char *tok;
-    File file = fs.open(path);
-    if (!file || file.isDirectory())
-    {
-        // Serial.println("- failed to open file for reading");
-        return 0;
-    }
-
-    while (file.available())
-    {
-        sFileContent = String(file.readStringUntil('\n'));
-
-        break;
-    }
-    dFileContent = strtod(sFileContent.c_str(), &tok);
-    // Serial.print(sFileContent);
-    // Serial.print(" tranformado ");
-    // Serial.println(dFileContent, 9);
-
-    // Serial.println("=================== fncFileReadValueDouble END======================");
-    return dFileContent;
-}
-String ClsNetworkConfig::fncFileReadValue(fs::FS &fs, const char *path)
-{
-
-    // //Serial.println("=================== fncFileReadValue ==========================");
-    Serial.printf("\n\rReading file: %s value: ", path);
-
-    File file = fs.open(path);
-    if (!file || file.isDirectory())
-    {
-        // Serial.println("- failed to open file for reading");
-        return String();
-    }
-
-    String fileContent;
-
-    while (file.available())
-    {
-        fileContent = String(file.readStringUntil('\n'));
-
-        break;
-    }
-    Serial.println(fileContent);
-    //  //Serial.println("=================== fncFileReadValue END======================");
-    return fileContent;
-}
-//===========================================================
-//===========================================================
-//===========================================================
-void ClsNetworkConfig::fncFileWriteValue(fs::FS &fs, const char *path, const char *value)
-{
-    // Serial.printf("Writing file: %s\r\n", path);
-
-    File file = fs.open(path, FILE_WRITE);
-    if (!file)
-    {
-        // Serial.println("- failed to open file for writing");
-        return;
-    }
-    if (file.print(value))
-    {
-        Serial.println("--------------------------------write file: start ");
-        Serial.print("write file: ");
-        Serial.print(path);
-        Serial.println(" value= ");
-        Serial.println(value);
-    }
-    else
-    {
-        // Serial.println("- frite failed");
-    }
-    file.flush();
-    file.close();
-    Serial.print("--------------------------------write file: end ");
 }
 
 //------------------------------------------------------------
@@ -555,10 +387,10 @@ String ClsNetworkConfig::getGpsLatitude()
     return sBuffer;
 }
 
- int ClsNetworkConfig::get_NtpTimeZone(){return m_NtpTimeZone;}
- int ClsNetworkConfig::get_NtpTimeZoneDayLight (){return m_NtpTimeZoneDayLight;}
- double ClsNetworkConfig::get_GpsLatitude() {return m_GpsLatitude;}
- double ClsNetworkConfig::get_GpsLongitude(){return m_GpsLongitude;}
+int ClsNetworkConfig::get_NtpTimeZone() { return m_NtpTimeZone; }
+int ClsNetworkConfig::get_NtpTimeZoneDayLight() { return m_NtpTimeZoneDayLight; }
+double ClsNetworkConfig::get_GpsLatitude() { return m_GpsLatitude; }
+double ClsNetworkConfig::get_GpsLongitude() { return m_GpsLongitude; }
 
 String ClsNetworkConfig::getConfigFull()
 {
@@ -604,19 +436,26 @@ bool ClsNetworkConfig::IsInternetAvailableTest()
     }
     m_IsInternetAvailable = test;
     Serial.print("Test if  Internet available");
-    if(m_IsInternetAvailable)
+    if (m_IsInternetAvailable)
     {
         Serial.println(" Succes!");
-    }else { Serial.println(" fail!");}
+    }
+    else
+    {
+        Serial.println(" fail!");
+    }
     return m_IsInternetAvailable;
 }
 
-void ClsNetworkConfig::debug(String from){
+void ClsNetworkConfig::debug(String from)
+{
     Serial.println("====================");
     Serial.println("debug ClsWificonfig" + from);
 
     Serial.println("====================");
     Serial.println(".");
+    Serial.print("m_WiFI_HostName=" + String(m_WiFI_HostName));
+    Serial.print("m_WiFI_AP_Pwd=" + String(m_WiFI_AP_Pwd));
     Serial.print("m_WiFI_AP_Ssid=" + String(m_WiFI_AP_Ssid));
     Serial.print("m_WiFI_AP_Pwd=" + String(m_WiFI_AP_Pwd));
     Serial.println(".");
@@ -640,4 +479,18 @@ void ClsNetworkConfig::debug(String from){
 
     Serial.println("m_IsInternetAvailable=" + String(m_IsInternetAvailable));
     Serial.println("====================");
+}
+
+String ClsNetworkConfig::fncIpAddressToString(IPAddress ipAddress)
+{
+    ipAddress.toString();
+    String result = String(ipAddress[0]) + "." + String(ipAddress[1]) + String(ipAddress[3]) + String(ipAddress[3]);
+
+    return result;
+}
+IPAddress ClsNetworkConfig::fncIpAddressFromString(String ipAddressString)
+{
+    IPAddress ip;
+    ip.fromString(ipAddressString);
+    return ip;
 }

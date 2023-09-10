@@ -75,10 +75,6 @@ const uint8_t g_pinVinSensor = 36;
 
 AsyncWebServer g_NetWebServer(80);
 
-TaskHandle_t g_MainTaskNetTimeHandle;
-TaskHandle_t g_MainTaskRelaysHandle;
 
-void g_MainTaskNetTime(void *pvParameters);
-void g_MainTaskRelays(void *pvParameters);
 
 #endif

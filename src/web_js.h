@@ -32,9 +32,7 @@ function fncGetAjax(pURL) {
    reply = xhttp.responseText;
    console.log(reply);
    return "reply";
-
   }
-
  };
  xhttp.open("GET", pURL, true);
  xhttp.send();

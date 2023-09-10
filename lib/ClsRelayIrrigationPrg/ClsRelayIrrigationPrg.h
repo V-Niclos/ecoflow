@@ -29,20 +29,18 @@ class ClsRelayIrrigationPrg
 public:
   enum ePrgMode
   {
-
     ePrgModeMANUAL,
     ePrgModeAUTO
   };
   enum eOnOff
   {
-    eOnOff_OFF,
-    eOnOff_ON
+    eOnOff_OFF=0,
+    eOnOff_ON=1
   };
   enum eIrrigation_OPENCLOSE
   {
-      eIrrigation_OPEN,
-    eIrrigation_CLOSE
-  
+     eIrrigation_CLOSE=LOW,
+     eIrrigation_OPEN=HIGH
   };
   ClsRelayIrrigationPrg();
   ~ClsRelayIrrigationPrg();
@@ -57,8 +55,8 @@ public:
   String getJson();
   bool   setJson(String jsonConfig);
   uint8_t getRelayIsOpen();
-  static const int m_PinRelayClose = HIGH;
-  static const int m_PinRelayOpen = LOW;
+ // static const int m_PinRelayClose = HIGH;
+ // static const int m_PinRelayOpen = LOW;
   uint8_t getPin();
   bool fncRelayConfigSave();
   void fncRelayConfigRead();

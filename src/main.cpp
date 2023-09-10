@@ -6,20 +6,26 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #include "mainDefines.h"
-#include "mainSetup.h"
-#include "mainSetupTasks.h"
-
 #include <SPIFFS.h>
-
+#include "mainSetupRelays.h"
+#include "mainSetupTimeSun.h"
+#include "mainSetupWifi.h"
+#include "mainSetupWebSrv.h"
+#include "mainSetupOTA.h"
 void setup()
 {
-  fncMainSetup();
-  //g_Relays.testRelays();
-  fncMainSetupTask();
-  // put your setup code here, to run once:
+  Serial.begin(SERIAL_BAUDRATE);
+  Serial.println("Startinng");
+  Serial.println();
+  pinMode(g_pinIntLedBlue, OUTPUT);
+  digitalWrite(g_pinIntLedBlue, HIGH);
+  fncMainSetupWifi();
+  fncMainSetupTimeSun();
+  fncMainSetupRelays();
+  fncMainSetupWebSrv();
+  fncMainSetupOTA();
+
 }
 
 //---------------------------------------------------------
@@ -30,12 +36,10 @@ void setup()
 
 void loop()
 {
-  // loop is split into two separate tasks, each running that assigned to a different core
-  // the tasks start  calling function   fncSetupTask() from setup() function
-  // ----------   -------------------------------------   --------------------------
-  //  Core        loop function                            main fun
-  // ----------   -------------------------------------   --------------------------
-  // Core 1    -> g_TaskCore_1_Loop( void * pvParameters )   -> g_WebServer.handleClient()
-  // core 0    -> g_TaskCore_0_Loop ( void * pvParameters )  -> call fncloopServosWithButtons
+
   ArduinoOTA.handle();
+  g_TimeRtcNtp.loop();
+  g_Relays.loop(millis());
+  g_NetworkConfig.loop();   // if connection are lost try reconnect
+   delay(100);
 }

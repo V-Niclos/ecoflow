@@ -35,20 +35,34 @@
     <input type="button" Class="button orange" onClick="location.replace('/confignet.html'); return false; " value ="Network & Time" title="config wifi, Ntp and gps location"/>
   </div>
   <div id="divBody">
-  <h1>TODO</h1>
+  <h4>TODO functionality</h4>
+  <p id="msg"></p>
+  <p>Relays 3,4,5 on board, not for irrigation.<br/>Pending functionality analysis. For now only on/off </p>
     <p>
-    Rele on off o
+    <b>Rele on off O</b>
      <input type="button" Class="button" onClick="fncOnOff(0,1);" value ="On"/>
      <input type="button" Class="button" onClick="fncOnOff(0,0);" value ="Off"/>
-   <label class="labelfrm" for="scn_minutes0"> minutes:</label> 
+   </p>
+    <p>
+    <b>Rele on off 1</b>
+     <input type="button" Class="button" onClick="fncOnOff(1,1);" value ="On"/>
+     <input type="button" Class="button" onClick="fncOnOff(1,0);" value ="Off"/>
+   </p>
+    <p>
+    <b>Rele on off 2</b>
+     <input type="button" Class="button" onClick="fncOnOff(2,1);" value ="On"/>
+     <input type="button" Class="button" onClick="fncOnOff(2,0);" value ="Off"/>
+   </p>
+   
+
  </div>
 </div>
 <script>
 function fncOnOff(idRrelay,onOff)
 {
-  let url="/relayonoffset?idrelay="+idRrelay+"&onoff="+onOff;
-  console.log(url);
-fncGetAjax(url);
+  let pURL="/relayonoffset?idrelay="+idRrelay+"&onoff="+onOff;
+  console.log(pURL);
+  fncGetHtml("msg", pURL);
 }</script>
 </body></html>
 

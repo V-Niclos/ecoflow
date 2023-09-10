@@ -13,7 +13,7 @@ void ClsRelayIrrigationPrg::setup(uint8_t relayId, uint relayPin, String relayNa
     m_RelayName = relayName;
     m_RelayConfigFile = "/irrigation" + String(relayId) + ".json";
     pinMode(m_RelayPin, OUTPUT);
-    digitalWrite(m_RelayPin, m_PinRelayClose);
+    digitalWrite(m_RelayPin, eIrrigation_CLOSE);
 if (forceReset) {fncRelayConfigResetDefault();}
 
     //Serial.print("ClsRelayIrrigationPrg::setup m_RelayId" + String(m_RelayId) + " m_RelayId" + String(m_RelayId) + " m_RelayName=" + m_RelayName+"file config="+m_RelayConfigFile);
@@ -38,7 +38,7 @@ void ClsRelayIrrigationPrg::loop()
         // todo develop logical process
         if (ma_PrgOnOff[id] == eOnOff_OFF)
         {
-            digitalWrite(m_RelayPin, m_PinRelayClose);
+            digitalWrite(m_RelayPin, eIrrigation_CLOSE);
         }
         else
         {
@@ -56,7 +56,7 @@ void ClsRelayIrrigationPrg::loop()
         }
     }
     // maybe not well configured, the  close
-    digitalWrite(m_RelayPin, m_PinRelayClose);
+    digitalWrite(m_RelayPin, eIrrigation_CLOSE);
 }
 
 void ClsRelayIrrigationPrg::setupPrg_0_Auto(String prgName, eOnOff prgOnOff, String prgStartHHMM, uint8_t prgDuration, uint8_t prgIntervalDays)
@@ -148,7 +148,7 @@ void ClsRelayIrrigationPrg::setupPrg_2_DefaultManual()
 
 uint8_t ClsRelayIrrigationPrg::getRelayIsOpen()
 {
-    if (digitalRead(m_RelayPin) == m_PinRelayOpen)
+    if (digitalRead(m_RelayPin) == eIrrigation_OPEN)
     {
         return 1;
     }

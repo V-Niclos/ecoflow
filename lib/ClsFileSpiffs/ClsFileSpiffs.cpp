@@ -7,7 +7,14 @@ ClsFileSpiffs::ClsFileSpiffs(/* args */)
 ClsFileSpiffs::~ClsFileSpiffs()
 {
 }
-
+String ClsFileSpiffs::fileReadWithDefault(String path, String defaultContent)
+{
+    if (fileExist(path))
+    {
+        fileWrite(path, defaultContent);
+    }
+    return fileRead(path);
+}
 String ClsFileSpiffs::fileRead(String path)
 {
     // Serial.println("--------------------------------READ file: start " + path);
@@ -45,8 +52,8 @@ String ClsFileSpiffs::fileRead(String path)
 }
 bool ClsFileSpiffs::fileWrite(String path, String content)
 {
-    // Serial.println("--------------------------------write file: start " + path);
-    // Serial.println(" content= " + content);
+     Serial.println("--------------------------------write file: start " + path);
+     Serial.println("Save in"+path+" content= " + content);
     bool bResult = true;
     if (!fncSpiffsInit())
     {
@@ -60,12 +67,12 @@ bool ClsFileSpiffs::fileWrite(String path, String content)
     File file = SPIFFS.open(path, FILE_WRITE);
     if (!file)
     {
-        // Serial.println("- failed to open file for writing");
+         Serial.println("- failed to open file for writing");
         return false;
     }
     if (file.print(content))
     {
-        // Serial.println("ok writed");
+         Serial.println("ok writed");
     }
     else
     {
@@ -106,7 +113,7 @@ bool ClsFileSpiffs::fileDelete(String path)
     return bResult;
 }
 
-bool ClsFileSpiffs::fncSpiffsInit()
+ bool ClsFileSpiffs::fncSpiffsInit()
 {
     if (!SPIFFS.begin(true))
     {
@@ -138,4 +145,48 @@ void ClsFileSpiffs::fileListSerial()
 
         file = root.openNextFile();
     }
+}
+
+ double ClsFileSpiffs::fncFileReadValueDoubleDefault(String path, double defaultValue)
+{
+    if (!fileExist(path))
+    {
+        char cDouble[14];
+        dtostrf(defaultValue, 12, 7, cDouble);
+        Serial.println("fncFileReadValueDoubleDefault not exist" +path);
+        Serial.print(cDouble);
+        fileWrite(path, String(cDouble));
+    }
+    return fncFileReadValueDouble(path);
+}
+double ClsFileSpiffs::fncFileReadValueDouble(String path)
+{
+     Serial.println("=================== fncFileReadValueDouble ======================");
+     Serial.printf("\n\rReading file: %s value: ", path);
+    double dFileContent = 0;
+    String sFileContent = "";
+    char *tok;
+    File file = SPIFFS.open(path);
+    if (!file || file.isDirectory())
+    {
+        // Serial.println("- failed to open file for reading");
+        return 0;
+    }
+
+    while (file.available())
+    {
+        sFileContent = String(file.readStringUntil('\n'));
+
+        break;
+       
+        // Serial.print(sFileContent);
+        // Serial.print(" tranformado ");
+        // Serial.println(dFileContent, 9);
+
+        // Serial.println("=================== fncFileReadValueDouble END======================");
+       
+    }
+    Serial.println(sFileContent);
+     dFileContent = strtod(sFileContent.c_str(), &tok);
+     return dFileContent;
 }

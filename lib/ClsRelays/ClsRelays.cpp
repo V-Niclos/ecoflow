@@ -20,7 +20,7 @@ void ClsRelays::setup(uint8_t pin0, uint8_t pin1, uint8_t pin2, uint8_t pin3, ui
   m_RelaysIrrigation[1].setup(1, pin1, "Irrigation 2",forceReset);
   m_RelaysOnOff[0].setup(2, pin2, "OnOff 3", ClsRelayOnOff::eOnOff_OPENCLOSE_CLOSE);
   m_RelaysOnOff[1].setup(3, pin3, "OnOff 4", ClsRelayOnOff::eOnOff_OPENCLOSE_CLOSE);
-  m_RelaysOnOff[1].setup(4, pin4, "OnOff 4", ClsRelayOnOff::eOnOff_OPENCLOSE_CLOSE);
+  m_RelaysOnOff[2].setup(4, pin4, "OnOff 5", ClsRelayOnOff::eOnOff_OPENCLOSE_CLOSE);
 }
 void ClsRelays::loop(double millisNow)
 {

@@ -16,8 +16,8 @@ void ClsTimeRtcNtp::fncRtcBegin()
 {
     if (!m_Rtc.begin())
     {
-         Serial.println("Couldn't find RTC");
-         Serial.flush();
+        Serial.println("Couldn't find RTC");
+        Serial.flush();
         abort();
     }
     if (m_Rtc.lostPower())
@@ -157,9 +157,8 @@ void ClsTimeRtcNtp::debugSerial()
     // Serial.print(m_NtpLocalGmtOffset_sec);
     // Serial.print(" m_NtpLocalDaylightOffset_sec=");
     // Serial.println(m_NtpLocalDaylightOffset_sec);
-
-    // Serial.println(&m_Time_Local, "Local=%A, %B %d %Y %H:%M:%S");
-    // Serial.println(&m_time_UTC, "Utc=%A, %B %d %Y %H:%M:%S");
+    Serial.println(&m_Time_Local, "Local=%A, %B %d %Y %H:%M:%S");
+    Serial.println(&m_time_UTC, "Utc=%A, %B %d %Y %H:%M:%S");
 }
 String ClsTimeRtcNtp::fncMinutesToHour(double dMinutes)
 {
@@ -199,8 +198,9 @@ DateTime ClsTimeRtcNtp::getNowAddDayDateTime(uint addDays)
     return t_next;
 }
 
-DateTime ClsTimeRtcNtp::NowDateTime ()
-{ return m_Rtc.now(); 
+DateTime ClsTimeRtcNtp::NowDateTime()
+{
+    return m_Rtc.now();
 }
 String ClsTimeRtcNtp::NowString()
 {

@@ -23,7 +23,7 @@ RemoteDebug Debug;
 void setup()
 {
   Serial.begin(SERIAL_BAUDRATE);
-  Serial.println("Startinng");
+  Serial.println("Starting ecoflow setup");
   Serial.println();
 
   // We need to do a basic WiFi begin because the RemoteDebug tries to access networking
@@ -41,6 +41,7 @@ void setup()
   fncMainSetupWebSrv();
   fncMainSetupOTA();
 
+  debugI("Setup done");
 }
 
 //---------------------------------------------------------

@@ -33,7 +33,9 @@ GPIO  DEVICE     FUNCTION
 #include "ClsTimeRtcNtp.h"
 #include "ClsNetworkConfig.h"
 #include "ClsSunSetRise.h"
+
 #define SERIAL_BAUDRATE 115200
+
 StaticJsonDocument<2088> g_docJsonRelays;
 ClsTimeRtcNtp g_TimeRtcNtp;
 ClsSunSetRise g_SunSetRise;

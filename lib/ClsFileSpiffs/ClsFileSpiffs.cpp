@@ -1,12 +1,24 @@
 #include "ClsFileSpiffs.h"
+
 ClsFileSpiffs::ClsFileSpiffs(/* args */)
 {
-    fncSpiffsInit();
 }
 
 ClsFileSpiffs::~ClsFileSpiffs()
 {
 }
+
+bool ClsFileSpiffs::begin()
+{
+     if (!SPIFFS.begin(true))
+      {
+        debugE("error initializing SPIFFS");
+        return false;
+      }
+
+      return true;
+}
+
 String ClsFileSpiffs::fileReadWithDefault(String path, String defaultContent)
 {
     if (fileExist(path))
@@ -17,22 +29,18 @@ String ClsFileSpiffs::fileReadWithDefault(String path, String defaultContent)
 }
 String ClsFileSpiffs::fileRead(String path)
 {
-    // Serial.println("--------------------------------READ file: start " + path);
     String result;
-    if (!fncSpiffsInit())
-    {
-        return ("oops cant init SSPIFF  " + path);
-    }
 
     if (!fileExist(path))
     {
-        // Serial.println("ERROR  not exist  file " + path);
+        debugW("ERROR  not exist  file %s", path.c_str());
+        return String();
     }
 
     File file = SPIFFS.open(path);
     if (!file || file.isDirectory())
     {
-        // Serial.println("- failed to open file for reading");
+        debugE("- failed to open file for reading: %s", path.c_str());
         return String();
     }
 
@@ -44,21 +52,13 @@ String ClsFileSpiffs::fileRead(String path)
     }
     file.flush();
     file.close();
-    // Serial.println("READED=" + result);
-
-    // Serial.println("--------------------------------READ file: END " + path);
-
     return result;
 }
 bool ClsFileSpiffs::fileWrite(String path, String content)
 {
-     Serial.println("--------------------------------write file: start " + path);
-     Serial.println("Save in"+path+" content= " + content);
+    debugV("Save in %s content= %s", path.c_str(), content.c_str());
     bool bResult = true;
-    if (!fncSpiffsInit())
-    {
-        return false;
-    }
+
     if (fileExist(path))
     {
         fileDelete(path);
@@ -67,83 +67,48 @@ bool ClsFileSpiffs::fileWrite(String path, String content)
     File file = SPIFFS.open(path, FILE_WRITE);
     if (!file)
     {
-         Serial.println("- failed to open file for writing");
+        debugE("failed to open file for writing %s", path.c_str());
         return false;
     }
     if (file.print(content))
     {
-         Serial.println("ok writed");
+         debugV("ok writed");
     }
     else
     {
-        // // Serial.println("- frite failed");
+         debugE("write failed to %s", path.c_str());
     }
     file.flush();
     file.close();
-    // Serial.print("--------------------------------write file: end ");
     return bResult;
 }
 bool ClsFileSpiffs::fileExist(String path)
 {
-    if (!fncSpiffsInit())
-    {
-        return false;
-    }
-
-    bool bResult = true;
-    if (SPIFFS.exists(path))
-    {
-        // Serial.println(path + "file exist");
-    }
-    else
-    {
-        // Serial.println(path + "file not exist");
-        bResult = false;
-    }
-    return bResult;
+    return SPIFFS.exists(path);
 }
+
 bool ClsFileSpiffs::fileDelete(String path)
 {
     bool bResult = true;
     if (fileExist(path))
     {
-
+        debugI("delete file: %s", path.c_str());
         bResult = SPIFFS.remove(path);
     }
     return bResult;
 }
 
- bool ClsFileSpiffs::fncSpiffsInit()
-{
-    if (!SPIFFS.begin(true))
-    {
-        // Serial.println("An error has occurred while mounting SPIFFS");
-        return false;
-    }
-    // Serial.println("SPIFFS mounted successfully");
-    return true;
-}
-
 void ClsFileSpiffs::fileListSerial()
 {
 
-    if (!SPIFFS.begin(true))
-    {
-        return;
-    }
-    if (!SPIFFS.begin(true))
-        return;
     File root = SPIFFS.open("/");
-
     File file = root.openNextFile();
 
+    debugI("Listing files:");
     while (file)
     {
-
-        // Serial.print("FILE: ");
-        // Serial.println(file.name());
-
         file = root.openNextFile();
+        debugI(" - %s", file.name());
     }
 }
 
@@ -153,23 +118,19 @@ void ClsFileSpiffs::fileListSerial()
     {
         char cDouble[14];
         dtostrf(defaultValue, 12, 7, cDouble);
-        Serial.println("fncFileReadValueDoubleDefault not exist" +path);
-        Serial.print(cDouble);
+        debugW("fncFileReadValueDoubleDefault not exist %s, writing default %lf", path.c_str(), cDouble);
         fileWrite(path, String(cDouble));
     }
     return fncFileReadValueDouble(path);
 }
 double ClsFileSpiffs::fncFileReadValueDouble(String path)
 {
-     Serial.println("=================== fncFileReadValueDouble ======================");
-     Serial.printf("\n\rReading file: %s value: ", path);
     double dFileContent = 0;
     String sFileContent = "";
     char *tok;
     File file = SPIFFS.open(path);
     if (!file || file.isDirectory())
     {
-        // Serial.println("- failed to open file for reading");
         return 0;
     }
 
@@ -178,15 +139,8 @@ double ClsFileSpiffs::fncFileReadValueDouble(String path)
         sFileContent = String(file.readStringUntil('\n'));
 
         break;
-       
-        // Serial.print(sFileContent);
-        // Serial.print(" tranformado ");
-        // Serial.println(dFileContent, 9);
-
-        // Serial.println("=================== fncFileReadValueDouble END======================");
-       
     }
-    Serial.println(sFileContent);
-     dFileContent = strtod(sFileContent.c_str(), &tok);
-     return dFileContent;
+    debugV("reading %s: %s", path.c_str(), sFileContent.c_str());
+    dFileContent = strtod(sFileContent.c_str(), &tok);
+    return dFileContent;
 }

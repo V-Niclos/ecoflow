@@ -5,7 +5,7 @@
 #include "ClsFileSpiffs.h"
 #include "Arduino.h"
 #define RELAYS_IRRIGATION_COUNT 2
-#define RELAYS_ONOF_COUNT 2
+#define RELAYS_ONOF_COUNT 3
 class ClsRelays
 {
 private:

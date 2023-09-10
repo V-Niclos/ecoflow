@@ -28,8 +28,7 @@ void ClsCaudal::fileRead()
  DeserializationError error = deserializeJson(m_JsonDoc, sJson);
   if (error)
   {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
+    debugE("deserializeJson() failed: %s", error.c_str());
     return;
   }
   for (int i=0;i<12;i++)

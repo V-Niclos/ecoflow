@@ -51,13 +51,12 @@ void setup()
 
 void loop()
 {
-
   ArduinoOTA.handle();
   g_TimeRtcNtp.loop();
   g_Relays.loop(millis());
   g_NetworkConfig.loop();   // if connection are lost try reconnect
   Debug.handle();
 
-  delay(100);
+  delay(10);
   yield();
 }

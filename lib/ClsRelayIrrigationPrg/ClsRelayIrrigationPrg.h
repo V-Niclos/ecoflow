@@ -4,6 +4,9 @@
 #include <arduino.h>
 #include "ClsFileSpiffs.h"
 #include <ArduinoJson.h>
+#include <RemoteDebug.h>
+extern RemoteDebug Debug;
+
 //-------------------------------------------
 /* enum conversion
 enum enumlist{CERO,UNO,DOS, TRES;}
@@ -61,7 +64,7 @@ public:
   bool fncRelayConfigSave();
   void fncRelayConfigRead();
   void fncRelayConfigResetDefault();
-  
+
 String getHtmlStatus();
 
 private:
@@ -73,18 +76,19 @@ private:
   uint m_RelayPin = 0;
   String m_RelayName = "";
 
+  static const int m_IrrigationPrograms = 3;
 
-  uint8_t ma_PrgId[3] = {0, 1, 2};
-  String ma_PrgName[3] = {"", "", ""};
-  ePrgMode ma_PrgMode[3] = {ePrgModeAUTO, ePrgModeAUTO, ePrgModeMANUAL};
-  eOnOff ma_PrgOnOff[3] = {eOnOff_OFF, eOnOff_OFF, eOnOff_OFF}; // 0=of this programtion not never do it, 1=execution acording programation.
-  String ma_PrgStartHHMM[3] = {"99:99", "99:99", "99:99"};      //"hh:mm"
-  String ma_PrgStopHHMM[3] = {"99:99", "99:99", "99:99"};       //"hh:mm";
-  uint8_t ma_PrgMinutes[3] = {0, 0, 0};
-  uint8_t ma_PrgIntervalDays[3] = {0, 0, 0};
-  time_t ma_PrgStartTime[3] = {0, 0, 0};
-  time_t ma_PrgStopTime[3] = {0, 0, 0};
-  eIrrigation_OPENCLOSE ma_PrgIsOpen[3] = {eIrrigation_CLOSE, eIrrigation_CLOSE, eIrrigation_CLOSE};
+  uint8_t ma_PrgId[m_IrrigationPrograms] = {0, 1, 2};
+  String ma_PrgName[m_IrrigationPrograms] = {"", "", ""};
+  ePrgMode ma_PrgMode[m_IrrigationPrograms] = {ePrgModeAUTO, ePrgModeAUTO, ePrgModeMANUAL};
+  eOnOff ma_PrgOnOff[m_IrrigationPrograms] = {eOnOff_OFF, eOnOff_OFF, eOnOff_OFF}; // 0=of this programtion not never do it, 1=execution acording programation.
+  String ma_PrgStartHHMM[m_IrrigationPrograms] = {"99:99", "99:99", "99:99"};      //"hh:mm"
+  String ma_PrgStopHHMM[m_IrrigationPrograms] = {"99:99", "99:99", "99:99"};       //"hh:mm";
+  uint8_t ma_PrgMinutes[m_IrrigationPrograms] = {0, 0, 0};
+  uint8_t ma_PrgIntervalDays[m_IrrigationPrograms] = {0, 0, 0};
+  time_t ma_PrgStartTime[m_IrrigationPrograms] = {0, 0, 0};
+  time_t ma_PrgStopTime[m_IrrigationPrograms] = {0, 0, 0};
+  eIrrigation_OPENCLOSE ma_PrgIsOpen[m_IrrigationPrograms] = {eIrrigation_CLOSE, eIrrigation_CLOSE, eIrrigation_CLOSE};
   void fncCalculateIrrigation(uint8_t prgId);
 };
 #endif

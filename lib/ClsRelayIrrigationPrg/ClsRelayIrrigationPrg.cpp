@@ -14,9 +14,10 @@ void ClsRelayIrrigationPrg::setup(uint8_t relayId, uint relayPin, String relayNa
     m_RelayConfigFile = "/irrigation" + String(relayId) + ".json";
     pinMode(m_RelayPin, OUTPUT);
     digitalWrite(m_RelayPin, eIrrigation_CLOSE);
-if (forceReset) {fncRelayConfigResetDefault();}
+    if (forceReset) {fncRelayConfigResetDefault();}
 
-    //Serial.print("ClsRelayIrrigationPrg::setup m_RelayId" + String(m_RelayId) + " m_RelayId" + String(m_RelayId) + " m_RelayName=" + m_RelayName+"file config="+m_RelayConfigFile);
+    debugV("ClsRelayIrrigationPrg::setup m_RelayId=%d m_RelayName=%s m_RelayConfigFile=%s",
+        m_RelayId, m_RelayName.c_str(), m_RelayConfigFile.c_str());
     fncRelayConfigRead();
 }
 void ClsRelayIrrigationPrg::loop()
@@ -32,7 +33,7 @@ void ClsRelayIrrigationPrg::loop()
     }
     m_loopIntervalPrevious = millisNow;
 
-    for (uint8_t id = 0; id < 3; id++)
+    for (uint8_t id = 0; id < m_IrrigationPrograms; id++)
     {
 
         // todo develop logical process
@@ -202,7 +203,6 @@ String ClsRelayIrrigationPrg::getJson()
         result += "}";
     }
     result += "]}";
-   // Serial.println(result);
     return result;
 }
 
@@ -220,15 +220,13 @@ bool ClsRelayIrrigationPrg::setJson(String jsonConfig)
         {	"id": "1", "name": "prg 1", "mode": "1", "onOff": "0", "startHHMM": "14:35", "minutes": "5", "intervalDays": "3"},
         { "id": "2", "name": "prg 2", "mode": "2", "onOff": "0", "startHHMM": "16:01", "minutes": "16", "intervalDays": "3"}]}
     */
-   // Serial.println("ClsRelayIrrigationPrg::setJson");
-    //Serial.println(jsonConfig);
+
     DeserializationError error = deserializeJson(m_JsonDoc, jsonConfig);
 
     // Test if parsing succeeds.
     if (error)
     {
-        Serial.print(F("deserializeJson() failed: "));
-        Serial.println(error.f_str());
+        debugE("deserializeJson() failed: %s", error.c_str());
         return false;
     }
     m_RelayId = m_JsonDoc["relayIrrigation"]["RelayId"].as<int>();
@@ -266,7 +264,7 @@ bool ClsRelayIrrigationPrg::fncRelayConfigSave()
 void ClsRelayIrrigationPrg::fncRelayConfigRead()
 {
 
-//Serial.println("ClsRelayIrrigationPrg::fncRelayConfigRead" +m_RelayConfigFile );
+    debugV("reading config file %s", m_RelayConfigFile);
     if (!ClsFileSpiffs::fileExist(m_RelayConfigFile))
     {
         // if not exist previous config
@@ -317,6 +315,5 @@ String ClsRelayIrrigationPrg::getHtmlStatus()
         result += "</p>";
     }
     result += "</p>";
-    Serial.println(result);
     return result;
 }

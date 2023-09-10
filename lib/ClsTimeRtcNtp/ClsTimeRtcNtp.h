@@ -5,6 +5,9 @@
 #include "freertos/timers.h"
 #include "Wire.h"
 #include "RTClib.h"
+#include <RemoteDebug.h>
+
+extern RemoteDebug Debug;
 
 // https://randomnerdtutorials.com/esp32-date-time-ntp-client-server-arduino/
 // https://stackoverflow.com/questions/69993920/unable-to-get-time-form-the-ntp-server-in-esp8266-arduino

@@ -14,8 +14,8 @@ void ClsRelays::setup(uint8_t pin0, uint8_t pin1, uint8_t pin2, uint8_t pin3, ui
 {
   //  void ClsRelayIrrigationPrg::setup(uint prgIdRelay, uint prgIdPrg,uint pin);
   // void setup(uint8_t RelayId, uint RelayPin, String RelayName);
-  // setup( uint8_t id,  uint8_t Pin,   String Name ,uint8_t defaultOnOff);
- bool forceReset=true;
+ bool forceReset=false;  // setup( uint8_t id,  uint8_t Pin,   String Name ,uint8_t defaultOnOff);
+
   m_RelaysIrrigation[0].setup(0, pin0, "Irrigation 1",forceReset);
   m_RelaysIrrigation[1].setup(1, pin1, "Irrigation 2",forceReset);
   m_RelaysOnOff[0].setup(2, pin2, "OnOff 3", ClsRelayOnOff::eOnOff_OPENCLOSE_CLOSE);
@@ -35,8 +35,6 @@ void ClsRelays::loop(double millisNow)
 }
 void ClsRelays::testRelays()
 {
-  // Serial.println("......start test relays........");
-
   for (int i = 0; i < m_relaysIrrigationCount; i++)
   {
     digitalWrite(m_RelaysIrrigation[i].getPin(), ClsRelayIrrigationPrg::eIrrigation_OPEN);
@@ -57,8 +55,6 @@ void ClsRelays::testRelays()
     digitalWrite(m_RelaysOnOff[i].getPin(), ClsRelayOnOff::eOnOff_OPENCLOSE_CLOSE);
     delay(1000);
   }
-
-  // Serial.println(".....end test relays .........");
 }
 String ClsRelays::getJsonConfig(int idRelay)
 {

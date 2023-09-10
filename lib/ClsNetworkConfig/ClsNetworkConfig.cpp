@@ -70,9 +70,7 @@ bool ClsNetworkConfig::set_config_WS(String wifi_WS_Ssid, String wifi_WS_Pwd)
 
 bool ClsNetworkConfig::set_config_WS(String wifi_WS_Ssid, String wifi_WS_Pwd, IPAddress wifi_WS_IP, IPAddress Wifi_WS_Mask, IPAddress wifi_WS_Gateway)
 {
-
-    // Serial.println(wifi_WS_Gateway);
-
+    debugI("Saving network configuration");
     m_WiFI_WS_Ssid = wifi_WS_Ssid;
     m_WiFI_WS_Pwd = wifi_WS_Pwd;
     m_WiFI_WS_IP = wifi_WS_IP;
@@ -84,22 +82,13 @@ bool ClsNetworkConfig::set_config_WS(String wifi_WS_Ssid, String wifi_WS_Pwd, IP
     ClsFileSpiffs::fileWrite(m_pathWsMask, m_WiFI_WS_Mask.toString());
     ClsFileSpiffs::fileWrite(m_pathWsGateway, m_WiFI_WS_Gateway.toString());
 
-    Serial.println("web post recived 1b ");
-    Serial.println(m_WiFI_WS_Ssid);
-    Serial.println(m_WiFI_WS_Pwd);
-    Serial.println(m_WiFI_WS_IP);
     // TODO CHECK IF IS SAVED AND CHECK IF VALID CONFIGURATION
     return true;
 }
 
 bool ClsNetworkConfig::set_config_TimeRtcNtp(int ntpTimeZone, int ntpTimeZoneDayLight, double gpsLatitude, double gpsLongitude)
 {
-    Serial.println("--------------------");
-    Serial.println("ClsNetworkConfig::set_config_TimeRtcNtp recived parameters");
-    Serial.print("gpsLatitude)= ");
-    Serial.print(gpsLatitude, 9);
-    Serial.print("gpsLongitude)= ");
-    Serial.println(gpsLongitude, 9);
+    debugI("Saving RTC NTP Configuration");
 
     m_NtpTimeZone = ntpTimeZone;
     m_NtpTimeZoneDayLight = ntpTimeZoneDayLight;
@@ -120,64 +109,63 @@ bool ClsNetworkConfig::set_config_TimeRtcNtp(int ntpTimeZone, int ntpTimeZoneDay
 
 bool ClsNetworkConfig::connectAP()
 {
+    debugI("Enabling Access Point mode with SSID %s, password %s", m_WiFI_AP_Ssid.c_str(), m_WiFI_AP_Pwd.c_str());
     WiFi.disconnect();
     WiFi.mode(WIFI_MODE_AP);
     // bool softAPConfig(IPAddress local_ip, IPAddress gateway, IPAddress subnet);
     if (!WiFi.softAPConfig(m_WiFI_AP_IP, m_WiFI_AP_Gateway, m_WiFI_AP_Mask))
     {
-        Serial.println("AP Failed to configure");
+        debugE("AP Failed to configure");
     }
     WiFi.softAP(m_WiFI_AP_Ssid.c_str(), m_WiFI_AP_Pwd.c_str());
-    Serial.println("Wifi connected as ");
-    Serial.printf("[WIFI] Access Point Mode, SSID: %s, IP address: %s\n", m_WiFI_AP_Ssid.c_str(), WiFi.softAPIP().toString().c_str());
     m_WiFi_ConnectedModeLast = 'a';
     m_intervaPrevious = millis();
-    Serial.printf("connectAP():: m_intervaPrevious: %ld %p\n", m_intervaPrevious, &m_intervaPrevious);
     return true;
 }
 
 //------------------------------------
 bool ClsNetworkConfig::connectWS()
 {
-    Serial.println("ClsNetworkConfig::connectWS()");
+    debugI("Connecting WiFi as workstation");
     if (m_WiFI_WS_Ssid == "")
     {
-        Serial.println("no SSID configured, skipping workstation connect");
+        debugI("no SSID configured, skipping workstation connect");
         return false;
     }
 
     WiFi.disconnect();
     WiFi.mode(WIFI_STA);
-    // WiFi.mode(WIFI_AP);
-    // g_NetWsIpDNS1, g_NetWsIpDNS2
+
     if (!WiFi.config(m_WiFI_WS_IP, m_WiFI_WS_Gateway, m_WiFI_WS_Mask, m_WiFI_WS_DNS2, m_WiFI_WS_DNS2))
     {
-        Serial.println("STA Failed to configure");
+        debugE("STA Failed to configure");
     }
 
-    Serial.print("Connecting as STA to WiFi: ");
-    Serial.print(m_WiFI_WS_Ssid);
+    debugI("Connecting as STA to WiFi: %s", m_WiFI_WS_Ssid.c_str());
     WiFi.begin(m_WiFI_WS_Ssid.c_str(), m_WiFI_WS_Pwd.c_str());
+
     unsigned long m_intervalCurrent = millis();
     m_intervaPrevious = m_intervalCurrent;
 
     while (WiFi.status() != WL_CONNECTED)
     {
         m_intervalCurrent = millis();
-        // Serial.print(".");
+
         if (m_intervalCurrent - m_intervaPrevious >= m_interval)
         {
-            // Serial.println("Failed to connect.");
+            debugE("WiFi error connecting as STA to %s", m_WiFI_WS_Ssid.c_str());
             m_intervaPrevious = millis();
             m_WiFi_ConnectedModeLast = 'f';
             return false;
         }
         delay(100);
     }
-    Serial.println("");
-    Serial.println("Wifi connected as ");
-    Serial.printf("[WIFI] STATION Mode, SSID: %s, IP address: %s Gateway: %s Dns: %s", WiFi.SSID().c_str(), WiFi.localIP().toString().c_str(), WiFi.gatewayIP().toString(), WiFi.dnsIP().toString());
-    Serial.println("");
+    debugI("WiFi connected successfully as STA, SSID: %s, IP address: %s Gateway: %s Dns: %s", 
+          WiFi.SSID().c_str(),
+          WiFi.localIP().toString().c_str(),
+          WiFi.gatewayIP().toString().c_str(),
+          WiFi.dnsIP().toString().c_str());
+
     m_WiFi_ConnectedModeLast = 'w';
     IsInternetAvailableTest();
     m_intervaPrevious = millis();
@@ -195,6 +183,7 @@ bool ClsNetworkConfig::setup(int8_t pinReset, bool bForceReset)
     // reset factory
     if (bForceReset)
     {
+        debugI("Performing factory reset");
         ClsFileSpiffs::fileDelete(m_pathHostName);
         ClsFileSpiffs::fileDelete(m_pathLatitude);
         ClsFileSpiffs::fileDelete(m_pathLongitude);
@@ -208,7 +197,6 @@ bool ClsNetworkConfig::setup(int8_t pinReset, bool bForceReset)
         ClsFileSpiffs::fileDelete(m_pathWsMask);
         ClsFileSpiffs::fileDelete(m_pathWsSsid);
         ClsFileSpiffs::fileDelete(m_pathWsPass);
-        Serial.println("Reset factory");
         set_config_default();
         set_config_AP(m_WiFI_AP_Ssid, m_WiFI_AP_Pwd_default);
 
@@ -216,12 +204,10 @@ bool ClsNetworkConfig::setup(int8_t pinReset, bool bForceReset)
         set_config_TimeRtcNtp(m_NtpTimeZone, m_NtpTimeZoneDayLight, m_GpsLatitude, m_GpsLongitude);
     }
 
-    Serial.println("-------------------------------------ClsNetworkConfig::setup()");
 
     if (!configRead())
     {
-        Serial.println("Not config readed,create one with default values");
-
+        debugI("Config read failed, creating one with default value");
         return false;
     }
 
@@ -230,7 +216,7 @@ bool ClsNetworkConfig::setup(int8_t pinReset, bool bForceReset)
 }
 bool ClsNetworkConfig::connect_WS_Or_AP()
 {
-    Serial.print("connect_WS_Or_AP()");
+    debugI("Trying to enable WiFi as workstation or AP");
     if (connectWS())
     {
         m_WiFi_ConnectedModeLast = 'w';
@@ -268,7 +254,6 @@ String ClsNetworkConfig::getWiFiListOfNetworkHtml()
             szReturn += "</td><td>";
             szReturn += (WiFi.RSSI(i));
             szReturn += "</td><td>";
-            // Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? " " : "*");
             szReturn += "</td></tr>";
         }
         szReturn += "</table>";
@@ -291,7 +276,7 @@ void ClsNetworkConfig::loop()
     // check for overflow in the counters
     if (m_intervaPrevious > m_intervalCurrent)
     {
-        Serial.println("ClsNetworkConfig::loop() Interval roll-over");
+        debugI("ClsNetworkConfig::loop() Interval roll-over");
         m_intervaPrevious = 0;
     }
 
@@ -300,7 +285,7 @@ void ClsNetworkConfig::loop()
     {
         if (m_WiFi_ConnectedModeLast == 'a' && WiFi.softAPgetStationNum() == 0)
         {
-            Serial.println("WARNING! trying to reconnect to wifi " + m_WiFI_WS_Ssid);
+            debugW("WARNING! trying to reconnect to wifi %s", m_WiFI_WS_Ssid.c_str());
             WiFi.disconnect();
             connect_WS_Or_AP();
         }
@@ -309,19 +294,17 @@ void ClsNetworkConfig::loop()
 
 bool ClsNetworkConfig::configRead()
 {
-    Serial.print("-------------------------------------ClsNetworkConfig::configRead() start:");
-
     set_config_default();
     // if not exist file then write with default value
 
     m_WiFI_WS_Ssid = ClsFileSpiffs::fileReadWithDefault(m_pathHostName, m_WiFI_HostName_default);
- 
+
     m_WiFI_WS_Ssid = ClsFileSpiffs::fileReadWithDefault(m_pathWsSsid, m_WiFI_WS_Ssid_default);
 
     m_WiFI_WS_Pwd = ClsFileSpiffs::fileReadWithDefault(m_pathWsPass, m_WiFI_WS_Pwd_default);
 
     m_WiFI_WS_IP.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsIP, m_WiFI_WS_IP_default.toString()));
- 
+
     m_WiFI_WS_Mask.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsMask, m_WiFI_WS_Mask_default.toString()));
 
     m_WiFI_WS_Gateway.fromString(ClsFileSpiffs::fileReadWithDefault(m_pathWsGateway, m_WiFI_WS_Gateway_default.toString()));
@@ -332,11 +315,11 @@ bool ClsNetworkConfig::configRead()
 
     m_NtpTimeZone = ClsFileSpiffs::fileReadWithDefault(m_pathTimeZone, String(m_NtpTimeZone_default)).toInt();
     m_NtpTimeZoneDayLight = ClsFileSpiffs::fileReadWithDefault(m_pathTimeDayLight, String(m_NtpTimeZoneDayLight_default)).toInt();
-  
+
     m_GpsLatitude = ClsFileSpiffs::fncFileReadValueDoubleDefault(m_pathLatitude, m_GpsLatitude_default);
- 
+
     m_GpsLongitude = ClsFileSpiffs::fncFileReadValueDoubleDefault(m_pathLongitude, m_GpsLongitude_default);
-    debug("configRead");
+   // debug("configRead");
     return true;
 }
 
@@ -418,67 +401,63 @@ bool ClsNetworkConfig::IsInternetAvailableTest()
     const char *remote_host = "www.google.com";
     const char *remote_host2 = "dns.google.com";
     const IPAddress remote_ip(8, 8, 4, 4);
-    Serial.println("Ping test connection internet");
+    debugI("Ping test connection internet (to 8.8.4.4)");
     if (Ping.ping(remote_ip))
     {
-        Serial.println("ping8, 8, 4, 4 Success!!");
+        debugI("ping 8.8.4.4 Success!!");
         test = true;
     }
     else if (Ping.ping(remote_host))
     {
-        Serial.println("ping www.google.com Success!!");
+        debugI("ping www.google.com Success!!");
         test = true;
     }
     else if (Ping.ping(remote_host2))
     {
-        Serial.println("ping dns.google.com Success!!");
+        debugI("ping dns.google.com Success!!");
         test = true;
     }
     m_IsInternetAvailable = test;
-    Serial.print("Test if  Internet available");
+
     if (m_IsInternetAvailable)
     {
-        Serial.println(" Succes!");
+        debugI("Internet connection available");
     }
     else
     {
-        Serial.println(" fail!");
+        debugW("Internet connection NOT available");
     }
     return m_IsInternetAvailable;
 }
 
 void ClsNetworkConfig::debug(String from)
 {
-    Serial.println("====================");
-    Serial.println("debug ClsWificonfig" + from);
+    
+    debugV("====================");
+    debugV("debug ClsWificonfig %s", from.c_str());
 
-    Serial.println("====================");
-    Serial.println(".");
-    Serial.print("m_WiFI_HostName=" + String(m_WiFI_HostName));
-    Serial.print("m_WiFI_AP_Pwd=" + String(m_WiFI_AP_Pwd));
-    Serial.print("m_WiFI_AP_Ssid=" + String(m_WiFI_AP_Ssid));
-    Serial.print("m_WiFI_AP_Pwd=" + String(m_WiFI_AP_Pwd));
-    Serial.println(".");
-    Serial.print("m_WiFI_WS_Ssid=" + String(m_WiFI_WS_Ssid));
-    Serial.print("m_WiFI_WS_Pwd=" + String(m_WiFI_WS_Pwd));
-    Serial.println(".");
-    Serial.print(WiFi.localIP());
-    Serial.println(WiFi.localIP());
-    Serial.println("WiFi.getMode()=" + WiFi.getMode());
-    Serial.println("WiFi.getHostname()=" + String(WiFi.getHostname()));
-    Serial.println("WiFi.gatewayIP()=" + String(WiFi.gatewayIP()));
-    Serial.println("WiFi.getAutoReconnect()=" + String(WiFi.getAutoReconnect()));
-
-    Serial.print("m_GpsLatitude=" + String(m_GpsLatitude));
-    Serial.print("m_GpsLongitude=" + String(m_GpsLongitude));
-    Serial.println(".");
-    Serial.print("m_NtpTimeZone=" + String(m_NtpTimeZone));
-    Serial.println("m_NtpTimeZone=" + String(m_NtpTimeZoneDayLight));
-
-    Serial.println("m_pinReset=" + String(m_pinReset));
-
-    Serial.println("m_IsInternetAvailable=" + String(m_IsInternetAvailable));
-    Serial.println("====================");
+    debugV("====================");
+    debugV(".");
+    debugV("m_WiFI_HostName=%s", m_WiFI_HostName.c_str());
+    debugV("m_WiFI_AP_Pwd=%s", m_WiFI_AP_Pwd.c_str());
+    debugV("m_WiFI_AP_Ssid=%s", m_WiFI_AP_Ssid.c_str());
+    debugV("m_WiFI_AP_Pwd=%s", m_WiFI_AP_Pwd.c_str());
+    debugV(".");
+    debugV("m_WiFI_WS_Ssid=%s", m_WiFI_WS_Ssid.c_str());
+    debugV("m_WiFI_WS_Pwd=%s", m_WiFI_WS_Pwd.c_str());
+    debugV(".");
+    debugV("WiFi.localIP()=%s", WiFi.localIP().toString().c_str());
+    debugV("WiFi.getMode()=%d", WiFi.getMode());
+    debugV("WiFi.getHostname()=%s", WiFi.getHostname());
+    debugV("WiFi.gatewayIP()=%s", WiFi.gatewayIP().toString().c_str());
+    debugV("WiFi.getAutoReconnect()=%d", WiFi.getAutoReconnect());
+    debugV("m_GpsLatitude=%f", m_GpsLatitude);
+    debugV("m_GpsLongitude=%f", m_GpsLongitude);
+    debugV(".");
+    debugV("m_NtpTimeZone=%d", m_NtpTimeZone);
+    debugV("m_NtpTimeZoneDayLight=%d", m_NtpTimeZoneDayLight);
+    debugV("m_IsInternetAvailable=%d", m_IsInternetAvailable);
+    debugV("====================");
 }
 
 String ClsNetworkConfig::fncIpAddressToString(IPAddress ipAddress)

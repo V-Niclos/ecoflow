@@ -16,19 +16,15 @@ void ClsTimeRtcNtp::fncRtcBegin()
 {
     if (!m_Rtc.begin())
     {
-        Serial.println("Couldn't find RTC");
-        Serial.flush();
+        debugE("Couldn't find RTC");
         abort();
     }
     if (m_Rtc.lostPower())
     {
-        // Serial.println("RTC lost power, let's set the time!");
+        debugE("RTC lost power, setting a base datetime");
         // When time needs to be set on a new device, or after a power loss, the
         // following line sets the RTC to the date & time this sketch was compiled
         m_Rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-        // This line sets the RTC with an explicit date & time, for example to set
-        // January 21, 2014 at 3am you would call:
-        // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
     }
 }
 void ClsTimeRtcNtp::setup(String ntpServer, int ntpTimeZone, int ntpTimeZoneDayLight, long gpsLatitude, long gpsLongitude)
@@ -74,13 +70,13 @@ void ClsTimeRtcNtp::fncReadNowNTP()
     configTime(m_NtpLocalGmtOffset_sec, m_NtpLocalDaylightOffset_sec, m_NtpServer.c_str());
     if (!getLocalTime(&m_Time_Local))
     {
-        // Serial.println("Failed to obtain local time ");
+        debugE("Failed to obtain local time");
         return;
     }
     configTime(0, 0, m_NtpServer.c_str());
     if (!getLocalTime(&m_time_UTC))
     {
-        // // Serial.println("Failed to obtain UTC time ");
+        debugE("Failed to obtain UTC time");
         return;
     }
     m_NtpReaded = true;
@@ -145,20 +141,8 @@ String ClsTimeRtcNtp::DateLocalYYYYMMDD() { return m_DateLocalYYYYMMDD; }
 String ClsTimeRtcNtp::TimeLocalHHMM() { return m_TimeLocalHHMM; }
 void ClsTimeRtcNtp::debugSerial()
 {
-    // struct tm timeinfo;
-    // // Serial.println("========================================================");
-    // Serial.print("m_Ntpcounter=");
-    // Serial.print(m_Ntpcounter);
-    // Serial.print(" m_NtpIntervalPrevious=");
-    // Serial.print(m_NtpIntervalPrevious);
-    // Serial.print(" m_NtpIntervalSwitch=");
-    // Serial.println(m_NtpIntervalSwitch);
-    // Serial.print(" m_NtpLocalGmtOffset_sec=");
-    // Serial.print(m_NtpLocalGmtOffset_sec);
-    // Serial.print(" m_NtpLocalDaylightOffset_sec=");
-    // Serial.println(m_NtpLocalDaylightOffset_sec);
-    Serial.println(&m_Time_Local, "Local=%A, %B %d %Y %H:%M:%S");
-    Serial.println(&m_time_UTC, "Utc=%A, %B %d %Y %H:%M:%S");
+    debugD("m_Time_Local=%s", asctime(&m_Time_Local));
+    debugD("m_time_UTC=%s", asctime(&m_time_UTC));
 }
 String ClsTimeRtcNtp::fncMinutesToHour(double dMinutes)
 {
@@ -183,18 +167,9 @@ String ClsTimeRtcNtp::fncMinutesToHour(double dMinutes)
 
 DateTime ClsTimeRtcNtp::getNowAddDayDateTime(uint addDays)
 {
-    // Serial.println("now_Add_Days");
-    char buf1[20];
     DateTime t_now = m_Rtc.now();
-    // DateTime(year, month, day, hour, min, sec);
-    // DateTime StopTimePlusTwoHoursAndThirtyMinutes = stopTime + TimeSpan(0, 2, 30, 0);
     DateTime t_next = t_now + TimeSpan(addDays, 0, 0, 0);
-    sprintf(buf1, "%02d:%02d:%02d %02d/%02d/%02d", t_now.hour(), t_now.minute(), t_now.second(), t_now.day(), t_now.month(), t_now.year());
-    // Serial.print("Date/Time now: ");
-    // Serial.println(buf1);
-    sprintf(buf1, "%02d:%02d:%02d %02d/%02d/%02d", t_next.hour(), t_next.minute(), t_next.second(), t_next.day(), t_next.month(), t_next.year());
-    // Serial.print("Date/Time next: ");
-    // Serial.println(buf1);
+
     return t_next;
 }
 
@@ -202,13 +177,11 @@ DateTime ClsTimeRtcNtp::NowDateTime()
 {
     return m_Rtc.now();
 }
+
 String ClsTimeRtcNtp::NowString()
 {
-    // Serial.println("now_Add_Days");
-    char buf1[20];
+    char buf1[64];
     DateTime t_now = m_Rtc.now();
     sprintf(buf1, "%02d:%02d:%02d %02d-%02d-%02d", t_now.hour(), t_now.minute(), t_now.second(), t_now.day(), t_now.month(), t_now.year());
-    // Serial.print("Date/Time now: ");
-    // Serial.println(buf1);
     return String(buf1);
 }

@@ -38,7 +38,7 @@ String ClsRelayOnOff::getJson()
         result += "}";
     }
     result + "]}";
-    // Serial.println(result);
+
     return result;
 }
 
@@ -56,8 +56,8 @@ String ClsRelayOnOff::getHtmlStatus()
 {
 
     String resultHtml = "<hr/><h5>Relays type on off</h5><p>";
-    resultHtml += "<b>"+ String(m_RelayId)+ " ";
-    resultHtml += m_RelayName+" </b>";
+    resultHtml += "<b>" + String(m_RelayId) + " ";
+    resultHtml += m_RelayName + " </b>";
     if (getIsOpen())
     {
         resultHtml += "<span class=\"led green\"></span>";

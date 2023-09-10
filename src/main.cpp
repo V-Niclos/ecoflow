@@ -23,7 +23,7 @@ RemoteDebug Debug;
 void setup()
 {
   Serial.begin(SERIAL_BAUDRATE);
-  Serial.println("Startinng");
+  Serial.println("Starting ecoflow setup");
   Serial.println();
 
   // We need to do a basic WiFi begin because the RemoteDebug tries to access networking
@@ -41,6 +41,7 @@ void setup()
   fncMainSetupWebSrv();
   fncMainSetupOTA();
 
+  debugI("Setup done");
 }
 
 //---------------------------------------------------------
@@ -51,13 +52,12 @@ void setup()
 
 void loop()
 {
-
   ArduinoOTA.handle();
   g_TimeRtcNtp.loop();
   g_Relays.loop(millis());
   g_NetworkConfig.loop();   // if connection are lost try reconnect
   Debug.handle();
 
-  delay(100);
+  delay(10);
   yield();
 }

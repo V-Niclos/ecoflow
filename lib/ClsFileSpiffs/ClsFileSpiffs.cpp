@@ -33,14 +33,14 @@ String ClsFileSpiffs::fileRead(String path)
 
     if (!fileExist(path))
     {
-        debugW("ERROR  not exist  file %s", path.c_str());
+        debugW("ERROR file does not exist: %s", path.c_str());
         return String();
     }
 
     File file = SPIFFS.open(path);
     if (!file || file.isDirectory())
     {
-        debugE("- failed to open file for reading: %s", path.c_str());
+        debugE("ERROR failed to open file for reading: %s", path.c_str());
         return String();
     }
 

@@ -9,8 +9,8 @@
 class ClsRelays
 {
 private:
-  const uint m_relaysIrrigationCount = 2;
-  const uint m_relaysOnOffCount = 2;
+  const uint m_relaysIrrigationCount = RELAYS_IRRIGATION_COUNT;
+  const uint m_relaysOnOffCount =RELAYS_ONOF_COUNT;
   const double m_loopInterval = 1000;
   double m_loopIntervalPrevious = 0;
 public:

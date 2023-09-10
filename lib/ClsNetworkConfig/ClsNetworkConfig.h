@@ -5,6 +5,9 @@
 #include "SPIFFS.h"
 #include "ESP32Ping.h" // foe internet is available
 #include "ClsFileSpiffs.h"
+#include <RemoteDebug.h>
+extern RemoteDebug Debug;
+
 /// @brief
 class ClsNetworkConfig
 {

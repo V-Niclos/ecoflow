@@ -35,8 +35,6 @@ void ClsRelays::loop(double millisNow)
 }
 void ClsRelays::testRelays()
 {
-  // Serial.println("......start test relays........");
-
   for (int i = 0; i < m_relaysIrrigationCount; i++)
   {
     digitalWrite(m_RelaysIrrigation[i].getPin(), ClsRelayIrrigationPrg::eIrrigation_OPEN);
@@ -57,8 +55,6 @@ void ClsRelays::testRelays()
     digitalWrite(m_RelaysOnOff[i].getPin(), ClsRelayOnOff::eOnOff_OPENCLOSE_CLOSE);
     delay(1000);
   }
-
-  // Serial.println(".....end test relays .........");
 }
 String ClsRelays::getJsonConfig(int idRelay)
 {

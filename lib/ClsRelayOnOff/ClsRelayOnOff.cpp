@@ -38,7 +38,7 @@ String ClsRelayOnOff::getJson()
         result += "}";
     }
     result + "]}";
-    // Serial.println(result);
+
     return result;
 }
 

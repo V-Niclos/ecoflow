@@ -6,6 +6,7 @@
 #include "ESP32Ping.h" // foe internet is available
 #include "ClsFileSpiffs.h"
 #include <RemoteDebug.h>
+#include <string>
 extern RemoteDebug Debug;
 
 /// @brief
@@ -13,17 +14,22 @@ class ClsNetworkConfig
 {
 public:
     ClsNetworkConfig();
-    bool setup(int8_t pinReset, bool bForceReset);
+    bool setup();
+       /// @brief  call in your loop, at intervals update time from NTP server and
+    //  calculate sunshine, sunset, momfase and if is daty
+    void loop(bool isReset);
     void set_config_AP(String wifi_AP_Ssid, String wifi_AP_Pwd);
-    bool set_config_WS(String wifi_WS_Ssid, String wifi_WS_Pwd);
-    bool set_config_WS(String wifi_WS_Ssid, String wifi_WS_Pwd, IPAddress wifi_WS_IP, IPAddress Wifi_AP_Mask, IPAddress wifi_AP_Gateway);
-    bool set_config_TimeRtcNtp(int ntpTimeZone, int ntpTimeZoneDayLight, double GpsLongitude, double gpsLatitude);
+    bool set_config_WS(bool bSave, String wifi_Host_Name, bool wifi_Use_Dhcp,String wifi_WS_Ssid, String wifi_WS_Pwd);
+    bool set_config_WS(bool bSave, String wifi_Host_Name, bool wifi_Use_Dhcp, String wifi_WS_Ssid, String wifi_WS_Pwd, IPAddress wifi_WS_IP, IPAddress Wifi_AP_Mask, IPAddress wifi_AP_Gateway);
+    bool set_config_TimeRtcNtp(bool bSave,int ntpTimeZone, int ntpTimeZoneDayLight, double GpsLongitude, double gpsLatitude);
 
     void set_config_default();
     void debug(String from);
     String macAddress = WiFi.macAddress();
     String chipId = String((uint32_t)ESP.getEfuseMac(), HEX);
     String getWiFiListOfNetworkHtml();
+    String gethostname();
+    bool  getUseDHCP();
     String getWiFiWsSSid();
     String getWiFiWsPwd();
     String getWiFiWsIP();
@@ -55,6 +61,8 @@ public:
      bool set_config_TimeRtcNtp(int ntpTimeZone, int ntpTimeZoneDayLight, double GpsLongitude, double gpsLatitude);
 
     */
+
+    
     int get_NtpTimeZone();
     int get_NtpTimeZoneDayLight();
     double get_GpsLatitude();
@@ -64,6 +72,8 @@ public:
     String getNtpTimeZoneDayLight();
     String getGpsLongitude();
     String getGpsLatitude();
+      String getGpsLongitude_default();
+    String getGpsLatitude_default();
     String getConfigFull();
     String getConfigDefaultFull();
     char get_connectedModeLast();
@@ -71,57 +81,61 @@ public:
     bool IsInternetAvailable();
     bool IsInternetAvailableTest();
 
-    /// @brief  call in your loop, at intervals update time from NTP server and
-    //  calculate sunshine, sunset, momfase and if is daty
-    void loop();
+ 
 
 private:
     // String m_RelaysJson_default = "[{\"idRelay\":\"0\", \"Name\": \"Belen 1\", \"Mode\": \"2\", \"Time\":\"0\"}, {\"idRelay\":\"1\", \"Name\": \"Belen 2\", \"Mode\": \"0\", \"Time\":\"3\"}, {\"idRelay\":\"2\", \"Name\": \"Belen 3\", \"Mode\": \"0\", \"Time\":\"3\"}, {\"idRelay\":\"3\", \"Name\": \"Belen 4\", \"Mode\": \"0\", \"Time\":\"3\"}, {\"idRelay\":\"4\", \"Name\": \"Belen 5\", \"Mode\": \"0\", \"Time\":\"3\"}, {\"idRelay\":\"5\", \"Name\": \"Belen 6\", \"Mode\": \"0\", \"Time\":\"3\"}, {\"idRelay\":\"6\", \"Name\": \"Belen 7\", \"Mode\": \"0\", \"Time\":\"3\"}, {\"idRelay\":\"7\", \"Name\": \"Belen 8\", \"Mode\": \"0\", \"Time\":\"3\"}]";
 
     // AP for Access point mode
-     String m_WiFI_HostName = "";    //=null
-    int8_t m_pinReset = 17;                  // -1= not establised, not in use
-    char m_WiFi_ConnectedModeLast = 'f';     // f=false, not connected, w=workstation, a=access  point
-    long m_interval = 30000;                 // 1/2 minute
+
+                // -1= not establised, not in use
+    char m_WiFi_ConnectedModeLast = 'f'; // f=false, not connected, w=workstation, a=access  point
+    long m_interval = 30000;             // 1/2 minute
     long m_intervaPrevious = 0;
     long m_intervalCurrent = 0;
 
+
+  
+
+    String m_WiFi_Host_Name = "";
+    bool m_WiFi_Use_DHCP = true; // 1=Use DHCP for get ip.. 0 use fixed address
     bool m_IsInternetAvailable = false;
-    String m_WiFI_AP_Ssid = "";
-    String m_WiFI_AP_Pwd = "";
-    IPAddress m_WiFI_AP_IP;
-    IPAddress m_WiFI_AP_Mask;
-    IPAddress m_WiFI_AP_Gateway;
-    IPAddress m_WiFI_AP_DNS1;
-    IPAddress m_WiFI_AP_DNS2;
+    String m_WiFi_AP_Ssid = "";
+    String m_WiFi_AP_Pwd = "";
+    IPAddress m_WiFi_AP_IP;
+    IPAddress m_WiFi_AP_Mask;
+    IPAddress m_WiFi_AP_Gateway;
+    IPAddress m_WiFi_AP_DNS1;
+    IPAddress m_WiFi_AP_DNS2;
 
     // WS Work station mode
-    String m_WiFI_WS_Ssid = "";
-    String m_WiFI_WS_Pwd = "";
-    IPAddress m_WiFI_WS_IP;
-    IPAddress m_WiFI_WS_Mask;
-    IPAddress m_WiFI_WS_Gateway;
-    IPAddress m_WiFI_WS_DNS1;
-    IPAddress m_WiFI_WS_DNS2;
+    String m_WiFi_WS_Ssid = "";
+    String m_WiFi_WS_Pwd = "";
+    IPAddress m_WiFi_WS_IP;
+    IPAddress m_WiFi_WS_Mask;
+    IPAddress m_WiFi_WS_Gateway;
+    IPAddress m_WiFi_WS_DNS1;
+    IPAddress m_WiFi_WS_DNS2;
     //-----------------------------
     // default values for access point mode
-    // m_WiFI_AP_Ssid_default  is buidl automatic
-    // with "NewIOt" + four digits of  ESP.getEfuseMac()
-    const String m_WiFI_HostName_default = "flow";    //=null
-    const String m_WiFI_AP_Pwd_default = "123456789"; //=null
-    const IPAddress m_WiFI_AP_IP_default = {192, 168, 1, 1};
-    const IPAddress m_WiFI_AP_Mask_default = {255, 255, 255, 0};
-    const IPAddress m_WiFI_AP_Gateway_default = {192, 168, 1, 1};
-    const IPAddress m_WiFI_AP_DNS1_default = {192, 168, 1, 1};
-    const IPAddress m_WiFI_AP_DNS2_default = {192, 168, 1, 1};
+    // m_WiFi_AP_Ssid_default  is buidl automatic
+    // with "flow" + four digits of  ESP.getEfuseMac()
+    const String m_WiFi_Host_Name_default = "ecoflow";
+    const bool m_WiFi_Use_DHCP_default =true;
+    const String m_WiFi_AP_Pwd_default = "123456789"; //=null
+    const IPAddress m_WiFi_AP_IP_default = {192, 168, 1, 1};
+    const IPAddress m_WiFi_AP_Mask_default = {255, 255, 255, 0};
+    const IPAddress m_WiFi_AP_Gateway_default = {192, 168, 1, 1};
+    const IPAddress m_WiFi_AP_DNS1_default = {192, 168, 1, 1};
+    const IPAddress m_WiFi_AP_DNS2_default = {192, 168, 1, 1};
     // default values for workstation mode
-    const String m_WiFI_WS_Ssid_default = "testudines";
-    const String m_WiFI_WS_Pwd_default = "915265ABCD";
-    const IPAddress m_WiFI_WS_IP_default = {192, 168, 2, 254};
-    const IPAddress m_WiFI_WS_Mask_default = {255, 255, 255, 0};
-    const IPAddress m_WiFI_WS_Gateway_default = {192, 168, 2, 1};
-    const IPAddress m_WiFI_WS_DNS1_default = {8, 8, 8, 8};
-    const IPAddress m_WiFI_WS_DNS2_default = {8, 8, 4, 4};
+    const String m_WiFi_WS_Ssid_default = "testudines";
+    const String m_WiFi_WS_Pwd_default = "915265ABCD";
+    const IPAddress m_WiFi_WS_IP_default = {192, 168, 2, 254};
+    const IPAddress m_WiFi_WS_Mask_default = {255, 255, 255, 0};
+    const IPAddress m_WiFi_WS_Gateway_default = {192, 168, 2, 1};
+    const IPAddress m_WiFi_WS_DNS1_default = {8, 8, 8, 8};
+    const IPAddress m_WiFi_WS_DNS2_default = {8, 8, 4, 4};
     //-----------------------------
     /*
 Cabanillas de la sierra
@@ -147,7 +161,8 @@ Cabanillas de la sierra
 
     // each parameters is saved in diferent file path
     // each file only has one parameter
-    const char *m_pathHostName="/hostname.txt";
+    const char *m_pathHostName = "/hostname.txt";
+    const char *m_pathUseDhcp = "/usedhcp.txt";
     const char *m_pathWsSsid = "/wsssid.txt";
     const char *m_pathWsPass = "/wspwd.txt";
     const char *m_pathWsIP = "/wsip.txt";
@@ -162,5 +177,6 @@ Cabanillas de la sierra
     const char *m_pathRelaysJson = "/relaysjson.txt";
     String fncIpAddressToString(IPAddress ipAddress);
     IPAddress fncIpAddressFromString(String ipAddressString);
+    void fncResetFactory();
 };
 #endif

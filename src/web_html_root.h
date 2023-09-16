@@ -40,7 +40,7 @@
 <script>
  document.addEventListener("DOMContentLoaded", (event) => {
     console.log("DOM fully loaded and parsed");
-   // fncGetHtml("divContent","/getstatus.html");
+  fncGetHtml("divContent","/getstatus.html");
   });
 
 </script>

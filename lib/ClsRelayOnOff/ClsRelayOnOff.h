@@ -13,7 +13,7 @@ class ClsRelayOnOff
     void setOpen();
     void setClose();
     void setup( uint8_t relayId,  uint8_t relayPin,   String relayName ,eOnOff_OPENCLOSE openClose);
-    void loop();
+    void loop(bool isReset);
    uint8_t getPin();
    String getJson();
    String getHtmlStatus();
@@ -23,7 +23,7 @@ private:
     String m_RelayName = "";
     
    eOnOff_OPENCLOSE m_openClose=eOnOff_OPENCLOSE_CLOSE;
-
+void fncResetFactory();
 
 };
 #endif

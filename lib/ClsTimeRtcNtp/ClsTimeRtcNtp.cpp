@@ -7,12 +7,13 @@ ClsTimeRtcNtp::ClsTimeRtcNtp(/* args */)
 ClsTimeRtcNtp::~ClsTimeRtcNtp()
 {
 }
+
 void ClsTimeRtcNtp::setup()
 {
 
     setup(m_NtpServer_default, m_NtpTimeZone_default, m_NtpTimeZone_DayLight_default, m_GpsLatitudeDefault, m_GpsLongitudeDefault);
 }
-void ClsTimeRtcNtp::fncRtcBegin()
+void ClsTimeRtcNtp::begin()
 {
     if (!m_Rtc.begin())
     {
@@ -39,14 +40,12 @@ void ClsTimeRtcNtp::setup(String ntpServer, int ntpTimeZone, int ntpTimeZoneDayL
     m_NtpLocalDaylightOffset_sec = m_NtpTimeZoneDayLight * m_NtpTime_HH_2_SS; //(De acuedo a reaguste pais)
 
     configTime(m_NtpLocalGmtOffset_sec, m_NtpLocalDaylightOffset_sec, ntpServer.c_str());
-    m_Rtc.begin(); // Inicializamos el RTC
+
     fncReadNowNTP();
 }
 void ClsTimeRtcNtp::loop()
 {
-    // unsigned long m_Ntpcounter=0;
-    // int64_t m_NtpIntervalSwitch=60000;
-    // int64_t m_NtpIntervalPrevious=0;
+    // debugI("ClsTimeRtcNtp::loop() start" );
 
     m_NtpIntervalActual = millis();
     if (m_NtpIntervalPrevious > m_NtpIntervalActual)
@@ -173,9 +172,22 @@ DateTime ClsTimeRtcNtp::getNowAddDayDateTime(uint addDays)
     return t_next;
 }
 
-DateTime ClsTimeRtcNtp::NowDateTime()
+DateTime ClsTimeRtcNtp::nowDateTime()
 {
-    return m_Rtc.now();
+ 
+    DateTime now_LastReaded;
+    if (IntervalPreviousRead > millis())
+    {
+        IntervalPreviousRead = 0;
+    }
+    if (millis() - IntervalPreviousRead > intervalLapseRead)
+    {
+        debugV("Reading RTC");
+        now_LastReaded = m_Rtc.now();
+        IntervalPreviousRead = millis();
+    }
+    
+    return now_LastReaded;
 }
 
 String ClsTimeRtcNtp::NowString()

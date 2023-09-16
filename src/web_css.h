@@ -3,7 +3,7 @@
 #ifndef _WEB_CSS_H
 #define _WEB_CSS_H
 const char g_HTML_Web_CSS[] PROGMEM = R"=====(
-*{line-height: 2em;}
+
 body {background-color: #555; background-image: linear-gradient(#333, #555); padding: 2px;}
 #divbody { min-height:100vh; padding:5px; max-width: 800px; margin: auto; background-color: #fff; border-radius: 15px;  border: 1px solid #73AD21;}
 #scnMsg{float:none;}

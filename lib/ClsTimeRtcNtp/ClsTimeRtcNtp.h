@@ -8,13 +8,33 @@
 #include <RemoteDebug.h>
 
 extern RemoteDebug Debug;
-
+//https://adafruit.github.io/RTClib/html/class_date_time.html
 // https://randomnerdtutorials.com/esp32-date-time-ntp-client-server-arduino/
 // https://stackoverflow.com/questions/69993920/unable-to-get-time-form-the-ntp-server-in-esp8266-arduino
 class ClsTimeRtcNtp
 {
 private:
   RTC_DS3231 m_Rtc;
+
+  unsigned long IntervalPreviousRead=0;
+  const unsigned long intervalLapseRead=1000;
+	
+/*
+DateTime::DateTime 	( 	uint16_t  	year,
+		uint8_t  	month,
+		uint8_t  	day,
+		uint8_t  	hour = 0,
+		uint8_t  	min = 0,
+		uint8_t  	sec = 0 
+	) 
+    year	Either the full year (range: 2000–2099) or the offset from year 2000 (range: 0–99).
+    month	Month number (1–12).
+    day	Day of the month (1–31).
+    hour,min,sec	Hour (0–23), minute (0–59) and second (0–59).
+DateTime t0 (2018,7,14,8,0,0);
+*/
+DateTime now_LastReaded = DateTime(0, 1, 1, 0, 0, 0); // ñapa, maybe erro in asigned are for not reserve memory
+
   void fncRtcBegin();
 
   bool m_NtpReaded = false;
@@ -78,12 +98,13 @@ private:
 public:
   ClsTimeRtcNtp(/* args */);
   ~ClsTimeRtcNtp();
+  void begin();
   void setup();
   void setup(String ntpServer, int ntpTimeZone, int ntpTimeZoneDayLight, long gpsLatitude, long gpsLongitude);
   void loop();
   void fncReadNowNTP();
   void debugSerial();
-  DateTime NowDateTime();
+  DateTime nowDateTime();
   String  NowString();
   
   String DateLocalYYYYMMDD();

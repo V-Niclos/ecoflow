@@ -9,8 +9,8 @@ GPIO  DEVICE     FUNCTION
 17    BUTTON     REBOOT 
 32    FLOW 1     CAUDALIMETER
 33    FLOW 2     CAUDALIMETER
-34    LED 1
-35    LED 2
+13    LED 1
+14    LED 2
 02    LED         BLUE INTERNAL(TRANSMISION)
 01    TXD         
 03    RXD
@@ -43,15 +43,15 @@ ClsNetworkConfig g_NetworkConfig;
 //------ RELAYS
 uint32_t g_RelayDelayLoop = 1;
 const uint g_RelaysCount = 5;
-
+bool g_IsReset=false;
+bool g_IsRtcConfigChanged=false;
+const uint32_t g_intervalPushReset=10000;
 
 ClsRelays g_Relays;
 //------ HADWARE PINS USED
 const int8_t g_pinReset = 17;
 const uint8_t g_pinIntLedBlue = 13;
 const uint8_t g_pinIntLedRed = 14;
-
-const uint8_t g_pingSensorLed = 23;
 
 //const uint8_t g_pinRelays[g_RelaysCount] = {23, 19, 4, 13, 13}; //  for testing with testing board with only four relays
 const uint8_t g_pinRelays[g_RelaysCount] = {12, 04, 27, 26, 25}; // for use with explotation board

@@ -6,7 +6,7 @@
 void fncMainSetupWifi()
 {
 // g_NetworkConfig.setup(g_pinReset, false); //force reset by pin
-  g_NetworkConfig.setup(g_pinReset, false); //true reset by software forced
+  g_NetworkConfig.setup(); //true reset by software forced
   if (g_NetworkConfig.IsInternetAvailable())
   {
     g_TimeRtcNtp.fncReadNowNTP();

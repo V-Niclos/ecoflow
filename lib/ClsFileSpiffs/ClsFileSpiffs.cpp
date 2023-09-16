@@ -10,22 +10,26 @@ ClsFileSpiffs::~ClsFileSpiffs()
 
 bool ClsFileSpiffs::begin()
 {
-     if (!SPIFFS.begin(true))
-      {
+    if (!SPIFFS.begin(true))
+    {
         debugE("error initializing SPIFFS");
         return false;
-      }
+    }
 
-      return true;
+    return true;
 }
 
 String ClsFileSpiffs::fileReadWithDefault(String path, String defaultContent)
 {
-    if (fileExist(path))
+    String result = "";
+    if (!fileExist(path))
     {
+
         fileWrite(path, defaultContent);
     }
-    return fileRead(path);
+    result = fileRead(path);
+    debugI("OK file : %s readed, value=%s ", path.c_str(), result.c_str());
+    return result;
 }
 String ClsFileSpiffs::fileRead(String path)
 {
@@ -50,6 +54,7 @@ String ClsFileSpiffs::fileRead(String path)
 
         break;
     }
+    debugI("OK file : %s readed, value=%s ", path.c_str(), result.c_str());
     file.flush();
     file.close();
     return result;
@@ -72,11 +77,11 @@ bool ClsFileSpiffs::fileWrite(String path, String content)
     }
     if (file.print(content))
     {
-         debugV("ok writed");
+        debugV("ok writed");
     }
     else
     {
-         debugE("write failed to %s", path.c_str());
+        debugE("write failed to %s", path.c_str());
     }
     file.flush();
     file.close();
@@ -84,7 +89,16 @@ bool ClsFileSpiffs::fileWrite(String path, String content)
 }
 bool ClsFileSpiffs::fileExist(String path)
 {
-    return SPIFFS.exists(path);
+    bool bResult = SPIFFS.exists(path);
+    if (!bResult)
+    {
+       // debugI("fileExist : %s false", path.c_str());
+    }
+    else
+    {
+       // debugI("fileExist : %s true", path.c_str());
+    }
+    return bResult;
 }
 
 bool ClsFileSpiffs::fileDelete(String path)
@@ -112,7 +126,7 @@ void ClsFileSpiffs::fileListSerial()
     }
 }
 
- double ClsFileSpiffs::fncFileReadValueDoubleDefault(String path, double defaultValue)
+double ClsFileSpiffs::fncFileReadValueDoubleDefault(String path, double defaultValue)
 {
     if (!fileExist(path))
     {

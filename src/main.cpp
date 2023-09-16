@@ -16,6 +16,7 @@
 #include "mainSetupWebSrv.h"
 #include "mainSetupOTA.h"
 #include "mainSetupRemoteDebug.h"
+#include "mainResetPressed.h"
 #include "ClsFileSpiffs.h"
 
 RemoteDebug Debug;
@@ -48,16 +49,14 @@ void setup()
 
 //----------------------------------------------------------
 
-
-
 void loop()
 {
+  isResetPressed();
   ArduinoOTA.handle();
   g_TimeRtcNtp.loop();
-  g_Relays.loop(millis());
-  g_NetworkConfig.loop();   // if connection are lost try reconnect
+  g_NetworkConfig.loop(g_IsReset);   // if connection are lost try reconnect
+  g_Relays.loop(g_TimeRtcNtp.nowDateTime(),g_IsReset);
   Debug.handle();
-
   delay(10);
   yield();
 }

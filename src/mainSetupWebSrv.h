@@ -16,7 +16,7 @@
 #include "web_js.h"
 #include "web_svg.h"
 #include "web_favicon.h"
-String fncFillAllStatus();
+#include "web_fncFillAllStatus.h"
 void fncMainSetupWebSrv()
 {
   g_NetWebServer.on("/js.js", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -88,10 +88,10 @@ void fncMainSetupWebSrv()
                     { request->send(200, "text/html", g_Web_Html_ConfigNet); });
   g_NetWebServer.on("/netconfigget", HTTP_GET, [](AsyncWebServerRequest *request)
                     { request->send(200, "text/plain", g_NetworkConfig.getConfigFull()); });
-  g_NetWebServer.on("/netConfigfetdefault", HTTP_GET, [](AsyncWebServerRequest *request)
+  g_NetWebServer.on("/netconfiggetdefault", HTTP_GET, [](AsyncWebServerRequest *request)
                     { request->send(200, "text/plain", g_NetworkConfig.getConfigDefaultFull()); });
 
-  g_NetWebServer.on("/netsaveconfig", HTTP_GET, [](AsyncWebServerRequest *request)
+  g_NetWebServer.on("/netconfigsave", HTTP_GET, [](AsyncWebServerRequest *request)
                     {
                       digitalWrite(g_pinIntLedBlue, LOW);
                       debugD("/netsaveconfig");
@@ -104,63 +104,96 @@ void fncMainSetupWebSrv()
                       int ntpTimeZoneDayLight = 0;
                       double gpsLongitude = 0;
                       double gpsLatitude = 0;
+                      String hostName = "";
+                      int dhcp = 0;
                       String szMsg = "";
                       String sz = "";
-                      int paramsNr = request->params();
+                      /*
+                      List of parameters on url /netsaveconfig?
+                        ssid;
+                        pwd
+                        ip
+                        mask
+                        gat
+                        TimeZone
+                        TimeDayLight
+                        lat
+                        long
+                        host
+                        dhcp
+                        */
+                  
 
-                      for (int i = 0; i < paramsNr; i++)
-                      {
-
-                        AsyncWebParameter *p = request->getParam(i);
-
-                        szMsg = szMsg + p->name() + "=" + p->value() + ", ";
-                        if (i == 0)
+                        szMsg = szMsg + "Retrieve " ;
+                        if (request->hasParam("ssid"))
                         {
-                          wifiWsSsid = p->value().c_str();
+                          wifiWsSsid = request->getParam("ssid")->value().c_str();
+                          szMsg+=", wifiWsSsid="+wifiWsSsid;
                         }
-                        if (i == 1)
+                        if (request->hasParam("pwd"))
                         {
-                          wifiWsPwd = p->value().c_str();
+                          wifiWsPwd = request->getParam("pwd")->value().c_str();
+                           szMsg+=", wifiWsPwd="+wifiWsPwd;
                         }
-                        if (i == 2)
+
+                        if (request->hasParam("ip"))
                         {
-                          sz = p->value().c_str();
+                          sz = request->getParam("ip")->value().c_str();
                           wifiWsNetIp.fromString(sz);
+                           szMsg+=", wifiWsNetIp="+sz;
                         }
-                        if (i == 3)
+                        if (request->hasParam("mask"))
                         {
-                          sz = p->value().c_str();
+                          sz = request->getParam("mask")->value().c_str();
                           wifiWsNetMask.fromString(sz);
+                           szMsg+=", wifiWsNetMask="+sz;
                         }
-                        if (i == 4)
+                       
+                     if (request->hasParam("gat"))
                         {
-                          sz = p->value().c_str();
+                          sz = request->getParam("gat")->value().c_str();
                           wifiWsNetGat.fromString(sz);
+                           szMsg+=", wifiWsNetGat="+sz;
                         }
-                        if (i == 5)
+                        if (request->hasParam("TimeZone"))
                         {
-                          sz = p->value().c_str();
+                          sz = request->getParam("TimeZone")->value().c_str();
                           ntpTimeZone = sz.toInt();
+                            szMsg+=", ntpTimeZone="+sz;
                         }
-                        if (i == 6)
+                                                                  
+                        if (request->hasParam("lat"))
                         {
-                          sz = p->value().c_str();
-                          ntpTimeZoneDayLight = sz.toInt();
+                          sz = request->getParam("lat")->value().c_str();
+                           gpsLatitude = sz.toDouble();
+                               szMsg+=", gpsLatitude="+sz;
                         }
-                        if (i == 7)
+                        if (request->hasParam("long"))
                         {
-                          sz = p->value().c_str();
-                          gpsLongitude = sz.toDouble();
+                          sz = request->getParam("long")->value().c_str();
+                           gpsLongitude = sz.toDouble();
+                            szMsg+=", gpsLongitude="+sz;
                         }
-                        if (i == 8)
+
+                         if (request->hasParam("host"))
                         {
-                          sz = p->value().c_str();
-                          gpsLatitude = sz.toDouble();
+                          hostName = request->getParam("host")->value().c_str();
+                             szMsg+=", hostName="+hostName;
+                          
                         }
-                      }
+                        if (request->hasParam("dhcp"))
+                        {
+                          sz = request->getParam("dhcp")->value().c_str();
+                          dhcp = sz.toInt();
+                           szMsg+=", dhcp="+sz;
+                        }
+                            
+                  
+                 
+                    
 
                       bool b = true;
-                      if (!g_NetworkConfig.set_config_WS(wifiWsSsid, wifiWsPwd, wifiWsNetIp, wifiWsNetMask, wifiWsNetGat))
+                      if (!g_NetworkConfig.set_config_WS(true, hostName, dhcp, wifiWsSsid, wifiWsPwd, wifiWsNetIp, wifiWsNetMask, wifiWsNetGat))
                       {
                         b = false;
                       }
@@ -173,13 +206,12 @@ void fncMainSetupWebSrv()
                         szMsg += " wifiWsNetGat=" + g_NetworkConfig.getWiFiWsGat();
                       }
 
-                      if (!g_NetworkConfig.set_config_TimeRtcNtp(ntpTimeZone, ntpTimeZoneDayLight, gpsLongitude, gpsLatitude))
+                      if (!g_NetworkConfig.set_config_TimeRtcNtp(true, ntpTimeZone, ntpTimeZoneDayLight, gpsLongitude, gpsLatitude))
                       {
                         b = false;
                       }
                       else
                       {
-
                         szMsg += "ntpTimeZone=" + g_NetworkConfig.getNtpTimeZone();
                         szMsg += "ntpTimeZoneDayLight=" + g_NetworkConfig.getNtpTimeZoneDayLight();
                         szMsg += "GpsLongitude=" + g_NetworkConfig.getGpsLongitude();
@@ -196,9 +228,7 @@ void fncMainSetupWebSrv()
 
                       szMsg + "<br/><b>The changes will be applied on next restart: You can click on button abobe this form</b>";
                       request->send(200, "text/html", "message received: " + szMsg);
-                      digitalWrite(g_pinIntLedBlue, HIGH);
-
-                    });
+                      digitalWrite(g_pinIntLedBlue, HIGH); });
 
   //------------------------------------------------------------------------
   g_NetWebServer.on("/relayonof.html", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -247,19 +277,5 @@ void fncMainSetupWebSrv()
   g_NetWebServer.begin();
   digitalWrite(g_pinIntLedBlue, LOW);
 }
-String fncFillAllStatus()
-{
-  return "hola mundo desde mainSetupWebSrv::fncFillAllStatus";
-  /*
-  String htmlResult = "";
-  // htmlResult += "<br/>Date " + g_TimeRtcNtp.TimeLocalHHMM() + " " + g_TimeRtcNtp.DateLocalYYYYMMDD();
-  // htmlResult += "<br/>Date " + g_TimeRtcNtp.NowString();
-  htmlResult += g_Relays.m_RelaysIrrigation[0].getHtmlStatus();
-  htmlResult += g_Relays.m_RelaysIrrigation[1].getHtmlStatus();
-  htmlResult += g_Relays.m_RelaysOnOff[0].getHtmlStatus();
-  htmlResult += g_Relays.m_RelaysOnOff[1].getHtmlStatus();
-  htmlResult += g_Relays.m_RelaysOnOff[2].getHtmlStatus();
-  return htmlResult;
-  */
-}
+
 #endif

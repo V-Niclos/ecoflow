@@ -11,10 +11,10 @@ const char g_Web_Html_ConfigNet[] PROGMEM = R"=====(
 <title>Config wifi</title> 
 <style>
 label {display: block; width: 130px; font-weight:bold; }
-input[type=text] { padding: 12px 20px;  min-width: :20em;   box-sizing: border-box;   padding:3px;   font-size:1rem; }
+input[type=text] { padding: 12px 20px;  min-width: 20em;   box-sizing: border-box;   padding:3px;   font-size:1rem; }
 input[type=password] { padding: 12px 20px;  min-width: 20em;   box-sizing: border-box;   padding:3px;   font-size:1rem; }
 .slidecontainer {   width: 100%; } 
-.slider {   -webkit-appearance: none;   width: 100%;   height: 25px;   background: #d3d3d3;   outline: none;   opacity: 0.7;  -webkit-transition: .2s;   transition: opacity .2s; }
+.slider {   -webkit-appearance: none;   width: 70%;   height: 25px;   background: #d3d3d3;   outline: none;   opacity: 0.7;  -webkit-transition: .2s;   transition: opacity .2s; }
 .slider:hover {   opacity: 1; }
 .slider::-webkit-slider-thumb { -webkit-appearance: none;  appearance: none;   width: 25px;   height: 25px;   background: #04AA6D;   cursor: pointer; }
 .slider::-moz-range-thumb {   width: 25px;   height: 25px;   background: #04AA6D;   cursor: pointer; }
@@ -49,39 +49,48 @@ input[type=password] { padding: 12px 20px;  min-width: 20em;   box-sizing: borde
 <input type="button" Class="button" onClick="fncGetAjaxConfig('/netconfigget')" value ="get config"/>
 <input type="button" Class="button" onClick="fncGetAjaxConfig('/netconfiggetdefault')" value ="get default"/>
 <input type="button" Class="button" onClick="jsSetConfigSave()" value ="Save"/>
-<input type="button" Class="button" onClick="fncSendGetHtml('scnMsgSend','/reset')" value ="Apply changes and reset"/>
+<input type="button" Class="button" onClick="fncSendGetHtml('scnMsgSend','/reset')" value ="reset"/>
 <div id="scnMsgSend" style=" border: 1px solid gray;; background-color:#eeeeee;" margin:2px;"></div>
 <div id="scnMsgReply" style="border: 1px solid gray; background-color:#eeeeee;" margin:2px;"></div>
 </div>
 </div>
 <div class="row">
+	<span id="scnMsg"></span>
+	<fieldset>
+<legend>General option</legend>
+	<label for="scnHostName">Host name</label> 
+	<input  type="text" id ="scnHostName" name="scnHostName" value="ecoflow" maxlength="25" placeholder="ecoflow">min length 5 max25 <span class="red" id="scnHostNameMsg"></span>
+		<br/> Use DHCP		
+  <input type="checkbox" id="scnDHCP" onclick="fncSwtichDHCP();">
+  </fieldset>
 <fieldset>
   <legend>For join to your net as ws:</legend>
-  <br/>
+ 
   <label for="scnSsid">SSID</label>
-  <input type="text" id ="scnSsid" name="scnSsid"><br>
+  <input type="text" id ="scnSsid" name="scnSsid" placeholder="ecoflow"><span class="red" id="scnSsidMsg"></span><br>
   <label for="scnPwd">Password</label>
-  <input  type="password" id ="scnPwd" name="scnPwd">
-  <input type="checkbox" onclick="togglePwd('scnPwd')"><strong>Show Password</strong>
+  <input  type="password" id ="scnPwd" name="scnPwd" placeholder="123456789">  <input type="checkbox" onclick="togglePwd('scnPwd')"><strong>Show Password</strong>
+  <span class="red" id="scnPwdMsg"></span>
   <br>
   <label for="scnIp">IP Address</label>
-  <input type="text" id ="scnIp" name="scnIp" value="192.168.2.47"><br>
+  <input type="text" id ="scnIp" name="scnIp" value="" placeholder="192.168.2.254"> <span class="red" id="scnIpMsg"></span><br>
   <label for="scnMask">IP Mask</label>
-  <input type="text" id ="scnMask" name="scnMask" value="255.255.255.0"><br>
+  <input type="text" id ="scnMask" name="scnMask" value="" placeholder="255.255.255.0"><span class="red" id="scnMaskMsg"></span><br>
   <label for="scnGat">Gateway Address</label>
-  <input type="text" id ="scnGat" name="scnGat" value="192.168.2.1"><br>
+  <input type="text" id ="scnGat" name="scnGat" value="" placeholder="192.168.2.1"><span class="red" id="scnGatMsg"></span><br>
   <br/>
 </fieldset>
 <fieldset>
    <legend>For get local time from NTP server</legend>
-   <div class="slidecontainer">
-   <b>"Time zone in hours"</b>
+   <div class="slidecontainer"><br/>
+   <label for="scnTimeZone">Time zone [HH]</label>
    <input type="range" min="-11" max="12" value="1" class="slider" id="scnTimeZone" name="scnTimeZone"  oninput="fncShowValue('scnTimeZone','scnTimeZoneValue')" >
-   <p>Time zone:<span id="scnTimeZoneValue"></span></p>
+   <span id="scnTimeZoneValue"></span>
    </div>
    <div class="slidecontainer">
+   	<label for="scnTimeZoneDay">Daylight [HH]</label>
    <input type="range" min="-2" max="+2" value="1" class="slider" id="scnTimeZoneDay" name="scnTimeZoneDay" oninput="fncShowValue('scnTimeZoneDay','scnTimeZoneDayValue')" >
-   <p>Time zone Day Light (summer): <span id="scnTimeZoneDayValue"></span></p>
+    <span id="scnTimeZoneDayValue"></span>
    </div>
 </fieldset>
 <fieldset>
@@ -101,6 +110,7 @@ input[type=password] { padding: 12px 20px;  min-width: 20em;   box-sizing: borde
 <script>
 
 function fncSendGetHtml(pDivTarget, pURL) {
+	 jsClearMsg();
  console.log("pDivTarget=" + pDivTarget + "\n pURL= " + pURL);
    document.getElementById("scnMsgSend").innerHTML = pURL;
  var xhttp;
@@ -114,19 +124,88 @@ function fncSendGetHtml(pDivTarget, pURL) {
  xhttp.open("GET", pURL, true);
  xhttp.send();
 }
-function ValidateIPaddress(ipaddress) 
-{
- if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(myForm.emailAddr.value))
-  {
-    return (true)
-  }
-alert("You have entered an invalid IP address!")
-return (false)
+
+function jsValidateForm()
+{		
+	let bOk=true;
+	jsClearMsg();
+			document.getElementById("scnMsg").style.color="black";	
+		let msg="";
+	if(document.getElementById('scnHostName').value.length==0)
+	{document.getElementById('scnHostName').value="ecoflow";}
+	if( document.getElementById("scnHostName").value.length<5)
+	{
+		bOk=false;
+    document.getElementById("scnHostNameMsg").innerHTML="*";
+		msg+="Error: Host name to short <br/>";
+	}
+	
+	let val=document.getElementById("scnSsid").value;
+	if( val.length<5)
+	{
+		bOk=false;
+		msg+="Error: Siid to short or empty <br/>";
+		document.getElementById("scnSsidMsg").innerHTML="*";
+	}
+	
+		 val= document.getElementById("scnPwd").value;
+	if( val.length<5)
+	{
+		bOk=false;
+		msg+="Error: password to short or empty <br/>";
+			document.getElementById("scnPwdMsg").innerHTML="*";
+	}
+	if (!fncValidateIp("scnIp"))
+	{
+	
+		bOk=false;
+		msg+="Error: Ip Invalid IP4 format</br>";
+				document.getElementById("scnIpMsg").innerHTML="*";
+		}
+		if (!fncValidateIp("scnMask"))
+	{
+		bOk=false;
+		msg+="Error: Ip Invalid ip4 mask  format</br>";
+		document.getElementById("scnMaskMsg").innerHTML="*";
+		}
+		
+		if (!fncValidateIp("scnGat"))
+	{
+	
+		bOk=false;
+		msg+="Error: gatweqy Invalid IP4 format</br>";
+		document.getElementById("scnGatMsg").innerHTML="*";
+		}
+	if(bOk==false)
+	{	
+	document.getElementById("scnMsg").style.color="red";	
+	document.getElementById("scnMsg").innerHTML=msg;
 }
 
+	return bOk;
+	}
+	function jsClearMsg()
+	{
+  document.getElementById("scnGatMsg").innerHTML="";
+  document.getElementById("scnMaskMsg").innerHTML="";
+  document.getElementById("scnIpMsg").innerHTML="";
+  document.getElementById("scnPwdMsg").innerHTML="";
+  document.getElementById("scnSsidMsg").innerHTML="";
+  document.getElementById("scnHostNameMsg").innerHTML="";
+  document.getElementById("scnHostNameMsg").innerHTML="";
+  document.getElementById("scnMsg").innerHTML="";
+  
+  
+		}
 function jsSetConfigSave()
 {
-  let url="/setConfigSave?";
+		console.log("1");
+	if(jsValidateForm()==false){return;}
+	
+  let sTemp="";
+  let url="/netconfigsave?";
+ 
+  
   url=url+"ssid="+document.getElementById('scnSsid').value.trim();
   url=url+"&pwd="+document.getElementById('scnPwd').value.trim();
   url=url+"&ip="+document.getElementById('scnIp').value.trim();
@@ -136,7 +215,11 @@ function jsSetConfigSave()
   url=url+"&TimeDayLight="+document.getElementById('scnTimeZoneDay').value.trim();
   url=url+"&lat="+document.getElementById('scnGpsLat').value.trim();
   url=url+"&long="+document.getElementById('scnGpsLon').value.trim();
-  fncSendGetHtml('scnMsgReply', url) ;
+  url=url+"&host="+document.getElementById('scnHostName').value.trim();
+  if(document.getElementById('scnDHCP').checked){sTemp="1";}else {sTemp="0";}
+  url=url+"&dhcp="+sTemp;
+   
+  fncSendGetHtml('scnMsgReply', url);
 }
 function togglePwd(id) {
 var temp = document.getElementById(id);
@@ -156,16 +239,7 @@ console.log(idRangeValue);
 console.log(slider.value) ;
 output.innerHTML = slider.value;
 }
-//---------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("Hello World!");
-  //fncSendGetHtml('scnDebug', '/geconfig');
- 
-fncGetAjaxConfig('/getconfig');
 
-
-
-});
 //---------------------------------------
 function fncGetAjaxConfig(pURL) {
   // https://www.w3schools.com/js/js_ajax_http_send.asp
@@ -187,8 +261,12 @@ function fncGetAjaxConfig(pURL) {
 }
 function fillFields(stringValues)
 {
+
    var aValues = stringValues.split("#");
  for (var i=0; i< aValues.length;i++) {console.log( i+" = "+ aValues[i]); }
+
+
+
  document.getElementById("scnSsid").value = aValues[0];
  document.getElementById("scnPwd").value = aValues[1];
  document.getElementById("scnIp").value = aValues[2];
@@ -209,8 +287,50 @@ function fillFields(stringValues)
  document.getElementById("scnGpsLon").value = aValues[8].trim();
  console.log(aValues[8]);
 
+  document.getElementById("scnHostName").value = aValues[9];
+  console.log("aValues[10]"+aValues[10])
+  if(aValues[10]=="1")
+  {
+  document.getElementById("scnDHCP").checked  = true;
+  }
+  else
+  {
+document.getElementById("scnDHCP").checked  = false;
+  }
 }
+function fncSwtichDHCP()
+{
+	let bEnable=false;
+	if(document.getElementById("scnDHCP").checked){bEnable=true;}
+	console.log(bEnable);
+	document.getElementById("scnIp").disabled=bEnable;
+	document.getElementById("scnGat").disabled=bEnable;
+	document.getElementById("scnMask").disabled=bEnable;
+	}
+function fncValidateIp(elementId)
+ {
+ let IpText=	document.getElementById(elementId).value;
+ var ipformat = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+ if(!IpText.match(ipformat))
+ {
+ return false;
+ }
+ return true;
+ }
+ //---------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+ 
+  //fncSendGetHtml('scnDebug', '/geconfig');
+ jsClearMsg();
+fncGetAjaxConfig('/netconfigget');
+
+
+
+});
 </script>
 </html>
+
+
+
 )=====";
 #endif

@@ -1,12 +1,10 @@
 #ifndef CLSRELAYSRIEGOPRG_H
 #define CLSRELAYSRIEGOPRG_H
 #include <time.h>
+#include "RTClib.h"
 #include <arduino.h>
 #include "ClsFileSpiffs.h"
 #include <ArduinoJson.h>
-#include <RemoteDebug.h>
-extern RemoteDebug Debug;
-
 //-------------------------------------------
 /* enum conversion
 enum enumlist{CERO,UNO,DOS, TRES;}
@@ -32,22 +30,24 @@ class ClsRelayIrrigationPrg
 public:
   enum ePrgMode
   {
+
     ePrgModeMANUAL,
     ePrgModeAUTO
   };
   enum eOnOff
   {
-    eOnOff_OFF=0,
-    eOnOff_ON=1
+    eOnOff_OFF,
+    eOnOff_ON
   };
   enum eIrrigation_OPENCLOSE
   {
-     eIrrigation_CLOSE=LOW,
-     eIrrigation_OPEN=HIGH
+      eIrrigation_OPEN,
+    eIrrigation_CLOSE
+  
   };
   ClsRelayIrrigationPrg();
   ~ClsRelayIrrigationPrg();
-  void loop();
+  void loop(DateTime now,bool isReset);
   void setup(uint8_t RelayId, uint RelayPin, String RelayName, bool forceReset=false);
   void setupPrg_0_Auto(String prgName, eOnOff prgOnOff, String prgStartHHMM, uint8_t prgDuration, uint8_t prgIntervalDays);
   void setupPrg_1_Auto(String prgName, eOnOff prgOnOff, String prgStartHHMM, uint8_t prgDuration, uint8_t prgIntervalDays);
@@ -58,13 +58,17 @@ public:
   String getJson();
   bool   setJson(String jsonConfig);
   uint8_t getRelayIsOpen();
- // static const int m_PinRelayClose = HIGH;
- // static const int m_PinRelayOpen = LOW;
+  static const int m_PinRelayClose = HIGH;
+  static const int m_PinRelayOpen = LOW;
   uint8_t getPin();
   bool fncRelayConfigSave();
   void fncRelayConfigRead();
-  void fncRelayConfigResetDefault();
 
+void fncResetFactory();
+
+  String DateTimeToString_HHMM(DateTime date);
+String DateTimeToString_YYMMDD(DateTime date);
+String DateTimeToString_YYMMDD_HHMM(DateTime date);
 String getHtmlStatus();
 
 private:
@@ -76,19 +80,20 @@ private:
   uint m_RelayPin = 0;
   String m_RelayName = "";
 
-  static const int m_IrrigationPrograms = 3;
 
-  uint8_t ma_PrgId[m_IrrigationPrograms] = {0, 1, 2};
-  String ma_PrgName[m_IrrigationPrograms] = {"", "", ""};
-  ePrgMode ma_PrgMode[m_IrrigationPrograms] = {ePrgModeAUTO, ePrgModeAUTO, ePrgModeMANUAL};
-  eOnOff ma_PrgOnOff[m_IrrigationPrograms] = {eOnOff_OFF, eOnOff_OFF, eOnOff_OFF}; // 0=of this programtion not never do it, 1=execution acording programation.
-  String ma_PrgStartHHMM[m_IrrigationPrograms] = {"99:99", "99:99", "99:99"};      //"hh:mm"
-  String ma_PrgStopHHMM[m_IrrigationPrograms] = {"99:99", "99:99", "99:99"};       //"hh:mm";
-  uint8_t ma_PrgMinutes[m_IrrigationPrograms] = {0, 0, 0};
-  uint8_t ma_PrgIntervalDays[m_IrrigationPrograms] = {0, 0, 0};
-  time_t ma_PrgStartTime[m_IrrigationPrograms] = {0, 0, 0};
-  time_t ma_PrgStopTime[m_IrrigationPrograms] = {0, 0, 0};
-  eIrrigation_OPENCLOSE ma_PrgIsOpen[m_IrrigationPrograms] = {eIrrigation_CLOSE, eIrrigation_CLOSE, eIrrigation_CLOSE};
-  void fncCalculateIrrigation(uint8_t prgId);
+  uint8_t ma_PrgId[3] = {0, 1, 2};
+  String ma_PrgName[3] = {"", "", ""};
+  ePrgMode ma_PrgMode[3] = {ePrgModeAUTO, ePrgModeAUTO, ePrgModeMANUAL};
+  eOnOff ma_PrgOnOff[3] = {eOnOff_OFF, eOnOff_OFF, eOnOff_OFF}; // 0=of this programtion not never do it, 1=execution acording programation.
+  String ma_PrgStartHHMM[3] = {"99:99", "99:99", "99:99"};      //"hh:mm"
+  String ma_PrgStopHHMM[3] = {"99:99", "99:99", "99:99"};       //"hh:mm";
+  uint8_t ma_PrgMinutes[3] = {0, 0, 0};
+    time_t time0 = time(0);
+  uint8_t ma_PrgIntervalDays[3] = {0, 0, 0};
+  DateTime ma_PrgStartTime[3] = {time0, time0, time0};
+  DateTime ma_PrgStopTime[3] = {time0, time0, time0};
+  eIrrigation_OPENCLOSE ma_PrgIsOpen[3] = {eIrrigation_CLOSE, eIrrigation_CLOSE, eIrrigation_CLOSE};
+
+  bool isInRangeIrrigation(uint8_t prgId,DateTime now);
 };
 #endif

@@ -8,32 +8,32 @@
 #include <RemoteDebug.h>
 
 extern RemoteDebug Debug;
-//https://adafruit.github.io/RTClib/html/class_date_time.html
-// https://randomnerdtutorials.com/esp32-date-time-ntp-client-server-arduino/
-// https://stackoverflow.com/questions/69993920/unable-to-get-time-form-the-ntp-server-in-esp8266-arduino
+// https://adafruit.github.io/RTClib/html/class_date_time.html
+//  https://randomnerdtutorials.com/esp32-date-time-ntp-client-server-arduino/
+//  https://stackoverflow.com/questions/69993920/unable-to-get-time-form-the-ntp-server-in-esp8266-arduino
 class ClsTimeRtcNtp
 {
 private:
   RTC_DS3231 m_Rtc;
 
-  unsigned long IntervalPreviousRead=0;
-  const unsigned long intervalLapseRead=1000;
-	
-/*
-DateTime::DateTime 	( 	uint16_t  	year,
-		uint8_t  	month,
-		uint8_t  	day,
-		uint8_t  	hour = 0,
-		uint8_t  	min = 0,
-		uint8_t  	sec = 0 
-	) 
-    year	Either the full year (range: 2000–2099) or the offset from year 2000 (range: 0–99).
-    month	Month number (1–12).
-    day	Day of the month (1–31).
-    hour,min,sec	Hour (0–23), minute (0–59) and second (0–59).
-DateTime t0 (2018,7,14,8,0,0);
-*/
-DateTime now_LastReaded = DateTime(0, 1, 1, 0, 0, 0); // ñapa, maybe erro in asigned are for not reserve memory
+  unsigned long IntervalPreviousRead = 0;
+  const unsigned long intervalLapseRead = 1000;
+
+  /*
+  DateTime::DateTime 	( 	uint16_t  	year,
+      uint8_t  	month,
+      uint8_t  	day,
+      uint8_t  	hour = 0,
+      uint8_t  	min = 0,
+      uint8_t  	sec = 0
+    )
+      year	Either the full year (range: 2000–2099) or the offset from year 2000 (range: 0–99).
+      month	Month number (1–12).
+      day	Day of the month (1–31).
+      hour,min,sec	Hour (0–23), minute (0–59) and second (0–59).
+  DateTime t0 (2018,7,14,8,0,0);
+  */
+  DateTime now_LastReaded = DateTime(0, 1, 1, 0, 0, 0); // ñapa, maybe erro in asigned are for not reserve memory
 
   void fncRtcBegin();
 
@@ -69,7 +69,7 @@ DateTime now_LastReaded = DateTime(0, 1, 1, 0, 0, 0); // ñapa, maybe erro in as
   int m_TimelLocalMonth = 0;
   int m_TimelLocalDayMonth = 0;
   int m_TimelLocalDayWeek = 0;
-  int m_TimelLocalDayYear = 0;
+
   int m_TimelLocalHour = 0;
   int m_TimelLocalMin = 0;
   int m_TimelLocalSec = 0;
@@ -77,23 +77,14 @@ DateTime now_LastReaded = DateTime(0, 1, 1, 0, 0, 0); // ñapa, maybe erro in as
   int m_TimeLocal_MinuteOfDay = 0;
   String m_DateLocalYYYYMMDD = "";
   String m_TimeLocalHHMM = "";
-
-  struct tm m_time_UTC = {0};
-  int m_TimelUTCYear = 0;
-  int m_TimelUTCMonth = 0;
-  int m_TimelUTCDayMonth = 0;
-  int m_TimelUTCDayWeek = 0;
-  int m_TimelUTCDayYear = 0;
-  int m_TimelUTCHour = 0;
-  int m_TimelUTCMin = 0;
-  int m_TimelUTCSec = 0;
-  int m_TimelUTClIdst = 0;
+  DateTime m_NowLastRead;
 
   bool IsNight();
   String fncMinutesToHour(double dMinutes);
   String fncFormatYYYYMMDD(int iYear, int iMonth, int iDay);
   String fncFormatHHMMSS(int iHH, int iMM, int iSS);
   String fncTwoDigit(int i);
+  void fncFillDateTimevalues();
 
 public:
   ClsTimeRtcNtp(/* args */);
@@ -105,11 +96,12 @@ public:
   void fncReadNowNTP();
   void debugSerial();
   DateTime nowDateTime();
-  String  NowString();
-  
+  String NowString();
+
   String DateLocalYYYYMMDD();
   String TimeLocalHHMM();
   DateTime getNowAddDayDateTime(uint addDays);
+
 };
 
 #endif

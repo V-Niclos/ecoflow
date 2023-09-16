@@ -28,6 +28,7 @@ void ClsTimeRtcNtp::begin()
         m_Rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
     }
 }
+
 void ClsTimeRtcNtp::setup(String ntpServer, int ntpTimeZone, int ntpTimeZoneDayLight, long gpsLatitude, long gpsLongitude)
 {
     m_NtpServer = ntpServer;
@@ -40,9 +41,27 @@ void ClsTimeRtcNtp::setup(String ntpServer, int ntpTimeZone, int ntpTimeZoneDayL
     m_NtpLocalDaylightOffset_sec = m_NtpTimeZoneDayLight * m_NtpTime_HH_2_SS; //(De acuedo a reaguste pais)
 
     configTime(m_NtpLocalGmtOffset_sec, m_NtpLocalDaylightOffset_sec, ntpServer.c_str());
-
-    fncReadNowNTP();
 }
+void ClsTimeRtcNtp::fncFillDateTimevalues()
+{
+
+    debugV("Reading RTC fncFillDateTimevalues");
+    m_NowLastRead = m_Rtc.now();
+    IntervalPreviousRead = millis();
+    m_TimelLocalYear = 1900 + m_NowLastRead.year();
+    m_TimelLocalMonth = m_NowLastRead.month();
+    m_TimelLocalDayMonth = m_NowLastRead.day();
+    m_TimelLocalDayWeek = m_NowLastRead.dayOfTheWeek();
+
+    m_TimelLocalHour = m_NowLastRead.hour();
+    m_TimelLocalMin = m_NowLastRead.minute();
+    m_TimelLocalSec = m_NowLastRead.second();
+    m_TimeLocal_MinuteOfDay = m_TimelLocalHour * 60 + m_TimelLocalMin;
+
+    m_DateLocalYYYYMMDD = fncFormatYYYYMMDD(m_TimelLocalYear, m_TimelLocalMonth, m_TimelLocalDayMonth);
+    m_TimeLocalHHMM = fncFormatHHMMSS(m_TimelLocalHour, m_TimelLocalMin, m_TimelLocalMin);
+}
+
 void ClsTimeRtcNtp::loop()
 {
     // debugI("ClsTimeRtcNtp::loop() start" );
@@ -54,10 +73,18 @@ void ClsTimeRtcNtp::loop()
     }
     if (m_NtpIntervalActual - m_NtpIntervalPrevious < m_NtpIntervalSwitch)
     {
+
         return;
     }
+
     fncReadNowNTP();
+    fncFillDateTimevalues();
 }
+
+  
+
+
+
 void ClsTimeRtcNtp::fncReadNowNTP()
 {
     if (WiFi.status() != WL_CONNECTED)
@@ -72,38 +99,21 @@ void ClsTimeRtcNtp::fncReadNowNTP()
         debugE("Failed to obtain local time");
         return;
     }
-    configTime(0, 0, m_NtpServer.c_str());
-    if (!getLocalTime(&m_time_UTC))
-    {
-        debugE("Failed to obtain UTC time");
-        return;
-    }
+  
+    debugI("RTC update from ntpserver");
+
+    char buf64[64];
+    sprintf(buf64,"%02d/%02d/%02d %02d:%02d:%02d", m_Time_Local.tm_year+1900, m_Time_Local.tm_mon, m_Time_Local.tm_mday, m_Time_Local.tm_hour, m_Time_Local.tm_min, m_Time_Local.tm_sec);
+    debugI("get datetime local = %s",buf64);
+    debugI("RTC update from ntpserver set dt");
+    DateTime dt = DateTime(m_Time_Local.tm_year+1900, m_Time_Local.tm_mon, m_Time_Local.tm_mday, m_Time_Local.tm_hour, m_Time_Local.tm_min, m_Time_Local.tm_sec);
+    debugI("RTC update from ntpserver set  m_Rtc.adjust");
+    m_Rtc.adjust(dt); // Set Day-of-Week to SUNDAY
     m_NtpReaded = true;
     m_NtpIntervalPrevious = m_NtpIntervalActual;
     m_Ntpcounter++;
-    m_TimelLocalYear = 1900 + m_Time_Local.tm_year;
-    m_TimelLocalMonth = m_Time_Local.tm_mon;
-    m_TimelLocalDayMonth = m_Time_Local.tm_mday;
-    m_TimelLocalDayWeek = m_Time_Local.tm_wday;
-    m_TimelLocalDayYear = m_Time_Local.tm_yday;
-    m_TimelLocalHour = m_Time_Local.tm_hour;
-    m_TimelLocalMin = m_Time_Local.tm_min;
-    m_TimelLocalSec = m_Time_Local.tm_sec;
-    m_TimeLocal_MinuteOfDay = m_Time_Local.tm_hour * 60 + m_Time_Local.tm_min;
 
-    m_DateLocalYYYYMMDD = fncFormatYYYYMMDD(m_TimelLocalYear, m_TimelLocalMonth, m_TimelLocalDayMonth);
-    m_TimeLocalHHMM = fncFormatHHMMSS(m_TimelLocalHour, m_TimelLocalMin, m_TimelLocalMin);
-
-    m_TimelUTCYear = 1900 + m_time_UTC.tm_year;
-    m_TimelUTCMonth = m_time_UTC.tm_mon;
-    m_TimelUTCDayMonth = m_time_UTC.tm_mday;
-    m_TimelUTCDayWeek = m_time_UTC.tm_wday;
-    m_TimelUTCDayYear = m_time_UTC.tm_yday;
-    m_TimelUTCHour = m_time_UTC.tm_hour;
-    m_TimelUTCMin = m_time_UTC.tm_min;
-    m_TimelUTCSec = m_time_UTC.tm_sec;
     // fncLoopSunset(m_TimelUTCDayYear, m_TimelUTCDayMonth, m_TimelUTCMin);
-    debugSerial();
 }
 String ClsTimeRtcNtp::fncTwoDigit(int i)
 {

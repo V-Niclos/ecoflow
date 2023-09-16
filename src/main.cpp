@@ -53,8 +53,8 @@ void loop()
 {
   isResetPressed();
   ArduinoOTA.handle();
-  g_TimeRtcNtp.loop();
   g_NetworkConfig.loop(g_IsReset);   // if connection are lost try reconnect
+  g_TimeRtcNtp.loop();
   g_Relays.loop(g_TimeRtcNtp.nowDateTime(),g_IsReset);
   Debug.handle();
   delay(10);

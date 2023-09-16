@@ -213,8 +213,8 @@ function jsSetConfigSave()
   url=url+"&gat="+document.getElementById('scnGat').value.trim();
   url=url+"&TimeZone="+document.getElementById('scnTimeZone').value.trim();
   url=url+"&TimeDayLight="+document.getElementById('scnTimeZoneDay').value.trim();
-  url=url+"&lat="+document.getElementById('scnGpsLat').value.trim();
   url=url+"&long="+document.getElementById('scnGpsLon').value.trim();
+  url=url+"&lat="+document.getElementById('scnGpsLat').value.trim();
   url=url+"&host="+document.getElementById('scnHostName').value.trim();
   if(document.getElementById('scnDHCP').checked){sTemp="1";}else {sTemp="0";}
   url=url+"&dhcp="+sTemp;
@@ -320,8 +320,7 @@ function fncValidateIp(elementId)
  //---------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
  
-  //fncSendGetHtml('scnDebug', '/geconfig');
- jsClearMsg();
+jsClearMsg();
 fncGetAjaxConfig('/netconfigget');
 
 

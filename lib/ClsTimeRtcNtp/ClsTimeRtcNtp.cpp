@@ -151,7 +151,6 @@ String ClsTimeRtcNtp::TimeLocalHHMM() { return m_TimeLocalHHMM; }
 void ClsTimeRtcNtp::debugSerial()
 {
     debugD("m_Time_Local=%s", asctime(&m_Time_Local));
-    debugD("m_time_UTC=%s", asctime(&m_time_UTC));
 }
 String ClsTimeRtcNtp::fncMinutesToHour(double dMinutes)
 {

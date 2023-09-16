@@ -40,14 +40,14 @@ void ClsRelayOnOff::loop(bool isReset)
             result += ("\"PrgIsOpen\":\"" + String(getIsOpen()) + "\"");
             result += "}";
         }
-        result + "]}";
+        result += "]}";
 
         return result;
     }
 
     uint8_t ClsRelayOnOff::getIsOpen()
     {
-        if (digitalRead(m_RelayPin == RELAY_OPEN))
+        if (digitalRead(m_RelayPin) == eOnOff_OPENCLOSE_OPEN)
         {
             return 1;
         }

@@ -1,8 +1,7 @@
 #ifndef CLSRELAYONOFF
 #define CLSRELAYONOFF
 #include <Arduino.h>
-#define RELAY_OPEN 0
-#define RELAY_CLOSE 1
+
 class ClsRelayOnOff
 {
   public:

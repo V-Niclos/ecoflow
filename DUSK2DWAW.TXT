@@ -1,0 +1,53 @@
+#include "ClsDusk2Dawn.h"
+
+
+void setup() {
+  Serial.begin (9600);
+  //40.41831, -3.70275
+  ClsDusk2Dawn lat_long(40.41831, -3.70275, 2);
+  
+  /*  Available methods are sunrise() and sunset(). Arguments are year, month,
+   *  day, and if Daylight Saving Time is in effect.
+   */
+  int Sunrise  = lat_long.sunrise(2024, 05, 15, false);
+  int Sunset   = lat_long.sunset(2024, 05, 15, false);
+  
+  
+  /*  A static method converts the returned time to a 24-hour clock format.
+   *  Arguments are a character array and time in minutes.
+   */
+  char Sunrise_time[6];
+  ClsDusk2Dawn::min2str(Sunrise_time, Sunrise);
+ Serial.print("Sunrise: ");
+  Serial.println(Sunrise_time); // 06:58
+
+ /*  Alternatively, the array could be initialized with a dummy. This may be
+  *  easier to remember.
+  */
+  char Sunset_time[] = "00:00";
+  ClsDusk2Dawn::min2str(Sunset_time, Sunset);
+   Serial.print("Sunset : ");
+  Serial.println(Sunset_time); // 16:53
+
+  /*  Do some calculations with the minutes, then convert to time.
+   */
+ // int laSolarNoon = Sunrise + (Sunset - Sunrise) / 2;
+  //char time3[] = "00:00";
+ // ClsDusk2Dawn::min2str(time3, laSolarNoon);
+ // Serial.println(time3); // 11:56
+
+
+  /*  In case of an error, an error message is given. The static method also
+   *  returns a false boolean value for error handling purposes.
+   */
+ // char time4[] = "00:00";
+  //bool response = ClsDusk2Dawn::min2str(time4, antSunrise);
+ // if (response == false) {
+  //  Serial.println(time4); // "ERROR"
+ //   Serial.println("Uh oh!");
+  //}
+}
+
+
+void loop() {
+}

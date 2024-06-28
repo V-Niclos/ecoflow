@@ -1,11 +1,11 @@
 #ifndef SECRET_H
 #define SECRET_H
 
-#define WS_1_SSID "testudines"
-#define WS_2_SSID "testudines3"
-#define WS_1_PWD "915265ABCD"
-#define WS_2_PWD "915265ABCD"
-#define AP_SSID "riego"
-#define AP_PWD  "123456789"
-#define  HOST_NAME "riego"
+#define WS_1_SSID "todo change for your network"
+#define WS_2_SSID "change to your second neteord"
+#define WS_1_PWD "todo change for your pwd"
+#define WS_2_PWD "todo change for your pwd"
+#define AP_SSID "todo change for your preferencies"
+#define AP_PWD  "todo change for your preferences"
+#define  HOST_NAME "change for your preferences"
 #endif 

@@ -1,9 +1,9 @@
-#ifndef THINSPEAK_SECRET_H
+#ifndef THINSPEAK_SECRET_H //change xxxx por you thinspeak
 #define THINSPEAK_SECRET_H
-    #define THINSPEAK_CHANEL_id  2586085
-    #define THINSPEAK_API_WRITE "6L2ZZIHDFVFUNTIY"
-    #define THINSPEAK_API_READ  "FEMA36SY7FQAZILL"
-    #define THINSPEAK_URL "https://thingspeak.com/channels/178277"
-    #define THINSPEAK_USER "vte.niclos@gmail.com"
-    #define THINSPEAK_PWD "<plantilla>MTH"
+    #define THINSPEAK_CHANEL_id  xxxx 
+    #define THINSPEAK_API_WRITE "xxxxx"
+    #define THINSPEAK_API_READ  "xxxxx"
+    #define THINSPEAK_URL "https://thingspeak.com/channels/xxxxx"
+    #define THINSPEAK_USER "xxxxxx"
+    #define THINSPEAK_PWD "xxxxxx"
 #endif

@@ -1,0 +1,21 @@
+DOC
+https://medium.com/@eder88559/construyendo-tu-propia-estaci%C3%B3n-meteorol%C3%B3gica-iot-con-esp32-monitoreo-en-tiempo-real-y-datos-en-58505fbffa18
+
+vte.niclos@gmail.com
+<template"THN
+
+unsigned long channnelID = ########;
+const char* WriteAPIKey = "############";
+
+CHANELS
+name ecoflow doremor
+Channel ID: 2586085
+field 1 pipe1
+field 2 pipe2
+
+write api key 6L2ZZIHDFVFUNTIY
+read api key FEMA36SY7FQAZILL
+
+format 
+created_at,field1,field3,field4,field8,elevation
+2019-01-01T10:11:12-05:00,11,33,44,88,10

@@ -1,0 +1,59 @@
+
+#include <ThingSpeak.h>
+#include <BMP280_DEV.h>                           // Include the BMP280_DEV.h library
+
+
+const char* ssid = "-------";
+const char* password = "------";
+
+WiFiClient client;
+
+unsigned long channnelID = ########;
+const char* WriteAPIKey = "############";
+
+BMP280_DEV bmp;
+float temperature, humidity, pressure, altitude;              // Create BMP280_DEV object and set-up for HSPI operation, SCK 14, MOSI 13, MISO 27, SS 21
+
+void setup() {
+  
+  Serial.begin(115200);
+  Serial.println("Test de sensores");
+
+  WiFi.begin(ssid, password);
+  while(WiFi.status() != WL_CONNECTED){
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("Conexión WiFi lista.");
+
+  ThingSpeak.begin(client);
+
+
+  bmp.begin(BMP280_I2C_ALT_ADDR);
+  //bme.setTimeStandby(TIME_STANDBY_2000MS);     // Set the standby time to 2 seconds
+  bmp.startNormalConversion();
+
+}
+
+void loop() {
+  
+ if (bmp.getMeasurements(temperature, pressure, altitude)) {
+    Serial.print("Temperatura: ");
+    Serial.print(temperature);
+    Serial.print(" *C   Presión: ");
+    Serial.print(pressure);
+    Serial.print(" hPa   Altitud: ");
+    Serial.print(altitude);
+    Serial.println(" m");
+
+    ThingSpeak.setField(1, temperature);
+    ThingSpeak.setField(2, pressure);
+    ThingSpeak.setField(3, altitude);
+    ThingSpeak.writeFields(channnelID, WriteAPIKey);
+    Serial.println("Datos enviados");
+    delay(20000);
+  }
+
+
+
+}
